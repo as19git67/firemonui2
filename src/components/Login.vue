@@ -11,12 +11,12 @@
               <v-toolbar-title>Anmelden</v-toolbar-title>
             </v-toolbar>
             <v-card-text>
-              <v-text-field id="username" v-model="username" prepend-icon="person" name="username" label="Benutzername" type="text" default
+              <v-text-field id="username" v-model="username" prepend-icon="mdi-person" name="username" label="Benutzername" type="text" default
                             autofocus
               />
             </v-card-text>
             <v-layout align-center justify-center>
-              <v-text-field id="code" v-model="code" prepend-inner-icon="sim_card" name="code" type="text" browser-autocomplete="off" mask="# # # # # #" outline
+              <v-text-field id="code" v-model="code" prepend-inner-icon="mdi-sim_card" name="code" type="text" autocomplete="off" mask="# # # # # #" outline
                             label="Authenticator App Code" class="codefield" @keyup.enter="validateCode()"
               />
             </v-layout>

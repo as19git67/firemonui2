@@ -135,12 +135,12 @@
         <MaterialPicker @close="materialPickerClose" />
       </template>
     </v-dialog>
-    <v-snackbar :value="haveDataToSave" :auto-height="true" :top="false" :timeout="0" dark color="info">
+    <v-snackbar :value="haveDataToSave" :top="false" :timeout="0" dark color="info">
       Daten werden automatisch gespeichert...
     </v-snackbar>
-    <v-snackbar v-model="errorSnackbar" :timeout="16000" :auto-height="true" :top="true" color="error">
+    <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
       {{errorSnackbarText}}
-      <v-btn flat @click="errorSnackbar = false">
+      <v-btn @click="errorSnackbar = false">
         Schließen
       </v-btn>
     </v-snackbar>

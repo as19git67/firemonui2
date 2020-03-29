@@ -35,10 +35,10 @@
         </v-card>
       </v-container>
     </v-form>
-    <v-snackbar v-model="saveStatus" :auto-height="true" :top="false" dark color="info">
+    <v-snackbar v-model="saveStatus" :top="false" dark color="info">
       Daten werden gespeichert...
     </v-snackbar>
-    <v-snackbar v-model="loadStatus" :auto-height="true" :top="false" dark color="info">
+    <v-snackbar v-model="loadStatus" :top="false" dark color="info">
       Daten werden geladen...
     </v-snackbar>
   </div>

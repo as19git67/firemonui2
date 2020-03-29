@@ -76,7 +76,7 @@
         </template>
       </v-tab-item>
     </v-tabs>
-    <v-snackbar v-model="snackbar" :timeout="snackbarTimeout" :auto-height="true" :top="true" :color="snackbarColor">
+    <v-snackbar v-model="snackbar" :timeout="snackbarTimeout" :top="true" :color="snackbarColor">
       {{snackbarText}}
       <v-btn flat @click="snackbar = false">
         Schließen
@@ -103,6 +103,18 @@
       Fax,
       Map
     },
+    data () {
+      return {
+        waitingForData: false,
+        snackbar: false,
+        snackbarTimeout: 6000,
+        snackbarText: '',
+        snackbarColor: 'info',
+        active: this.active,
+        keyword: this.keyword ? this.keyword : 'unknown',
+        catchword: this.catchword ? this.catchword : 'unknown'
+      }
+    },
     computed: {
       ...mapGetters({haveDataToSave: 'haveDataToSave', jobsList: 'jobsList', currentJobId: 'currentJobId', currentJob: 'currentJob', jobById: 'jobById'}),
       // were not able to get the watch work with wsConnected as mapGetters => implement computed property manually
@@ -116,6 +128,33 @@
         if (this.wsConnected) {
           this.loadJobFromServer()
         }
+      }
+    },
+    created () {
+      const jobId = this.$attrs.jobId
+      const jobs = this.jobsList
+      if (jobId === undefined || jobs === undefined || jobs.length === 0) {
+        console.log(`No jobId - redirecting to /`)
+        this.$router.replace('/')
+        return
+      }
+      console.log(`Alarm should show job with id ${jobId}`)
+      const j = this.jobById(jobId)
+      if (j === undefined) {
+        this.$router.replace('/')
+        return
+      }
+      this.storeSetCurrentJobId(jobId)
+      this.keyword = this.currentJob.keyword
+      this.catchword = this.currentJob.catchword
+      if (jobId.startsWith('d')) {
+        // it is a temporarily decrypted job (only for viewing encrypted job)
+        this.readonly = this.currentJob.readonly
+        if (!this.readonly) {
+          throw new Error('WARNING: decrypted job must be readonly')
+        }
+      } else {
+        this.loadJobFromServer()
       }
     },
     methods: {
@@ -158,45 +197,6 @@
         this.snackbarTimeout = 16000
         this.snackbar = true
         console.log(snackText, ex)
-      }
-    },
-    data () {
-      return {
-        waitingForData: false,
-        snackbar: false,
-        snackbarTimeout: 6000,
-        snackbarText: '',
-        snackbarColor: 'info',
-        active: this.active,
-        keyword: this.keyword ? this.keyword : 'unknown',
-        catchword: this.catchword ? this.catchword : 'unknown'
-      }
-    },
-    created () {
-      const jobId = this.$attrs.jobId
-      const jobs = this.jobsList
-      if (jobId === undefined || jobs === undefined || jobs.length === 0) {
-        console.log(`No jobId - redirecting to /`)
-        this.$router.replace('/')
-        return
-      }
-      console.log(`Alarm should show job with id ${jobId}`)
-      const j = this.jobById(jobId)
-      if (j === undefined) {
-        this.$router.replace('/')
-        return
-      }
-      this.storeSetCurrentJobId(jobId)
-      this.keyword = this.currentJob.keyword
-      this.catchword = this.currentJob.catchword
-      if (jobId.startsWith('d')) {
-        // it is a temporarily decrypted job (only for viewing encrypted job)
-        this.readonly = this.currentJob.readonly
-        if (!this.readonly) {
-          throw new Error('WARNING: decrypted job must be readonly')
-        }
-      } else {
-        this.loadJobFromServer()
       }
     },
     beforeRouteLeave (to, from, next) {

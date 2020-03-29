@@ -16,10 +16,10 @@
         </td>
       </template>
     </v-data-table>
-    <v-snackbar v-model="saveStatus" :auto-height="true" :top="false" :timeout="6000" dark color="info">
+    <v-snackbar v-model="saveStatus" :top="false" :timeout="6000" dark color="info">
       Daten werden automatisch gespeichert...
     </v-snackbar>
-    <v-snackbar v-model="errorSnackbar" :timeout="16000" :auto-height="true" :top="true" color="error">
+    <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
       {{errorSnackbarText}}
       <v-btn flat @click="errorSnackbar = false">
         Schließen
@@ -34,6 +34,24 @@
 
   export default {
     name: 'Attendees',
+    data () {
+      return {
+        saveStatus: this.saveStatus,
+        staffWithStatus: this.staffWithStatus,
+        errorSnackbar: false,
+        errorSnackbarText: '',
+        loading: this.loading,
+        pagination: {
+          sortBy: 'lastname',
+          rowsPerPage: -1
+        },
+        headers: [
+          {text: 'Anwesend', sortable: true, value: 'attended'},
+          {text: 'Name', align: 'left', sortable: true, value: 'lastname'},
+          {text: 'Vorname', align: 'left', sortable: true, value: 'firstname'}
+        ]
+      }
+    },
     computed: {
       ...mapGetters({
         canWrite: 'canWrite',
@@ -55,6 +73,10 @@
       staff (newList, oldList) {
         this._setStaffWithStatus()
       }
+    },
+    created () {
+      this.readonly = !this.canWrite || this.currentJob.readonly
+      this._setStaffWithStatus()
     },
     methods: {
       ...mapActions([
@@ -112,28 +134,6 @@
             isToggleAttendedDisabled: ro
           }
         })
-      }
-    },
-    created () {
-      this.readonly = !this.canWrite || this.currentJob.readonly
-      this._setStaffWithStatus()
-    },
-    data () {
-      return {
-        saveStatus: this.saveStatus,
-        staffWithStatus: this.staffWithStatus,
-        errorSnackbar: false,
-        errorSnackbarText: '',
-        loading: this.loading,
-        pagination: {
-          sortBy: 'lastname',
-          rowsPerPage: -1
-        },
-        headers: [
-          {text: 'Anwesend', sortable: true, value: 'attended'},
-          {text: 'Name', align: 'left', sortable: true, value: 'lastname'},
-          {text: 'Vorname', align: 'left', sortable: true, value: 'firstname'}
-        ]
       }
     }
   }

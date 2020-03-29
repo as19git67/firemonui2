@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" app dark color="accent" fixed flat>
+  <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" app dark color="accent" fixed flat>
     <v-toolbar-title class="ml-0 pl-3">
       <span class="hidden-sm-and-down">Alarm Monitor</span>
       <span v-if="subTitle" :class="notificationClass">{{subTitle}}</span>
@@ -28,7 +28,7 @@
     <v-btn v-if="canLogout" :disabled="haveDataToSave" title="Abmelden" icon @click="logout()">
       <v-icon>mdi-logout</v-icon>
     </v-btn>
-  </v-toolbar>
+  </v-app-bar>
 </template>
 
 <script>

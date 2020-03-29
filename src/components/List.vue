@@ -8,20 +8,22 @@
         Einsatzliste
         <v-btn icon @click="createJob">
           <v-icon title="manuell anlegen">
-            add
+            mdi-plus
           </v-icon>
         </v-btn>
       </h1>
-      <v-data-table v-resize="onResize" :headers="headers" :items="jobsList" :pagination.sync="pagination" class="elevation-1">
+      <v-data-table v-resize="onResize" :headers="headers" :items="jobsList" class="elevation-1">
+        <template v-slot:item.start="{ item }">
+          {{ item.start.format('L LTS') }}
+        </template>
+        <template v-if="$vuetify.breakpoint.smAndUp" v-slot:item.end="{ item }">
+          {{ item.end.format('L LTS') }}
+        </template>
         <template slot="items" slot-scope="props">
           <td class="text-xs-left">
-            {{ props.item.start | toDate }}
-          </td>
-          <td v-if="$vuetify.breakpoint.smAndUp" class="text-xs-left">
-            {{ props.item.end | toDate }}
-          </td>
-          <td class="text-xs-left">
-            <router-link v-if="!props.item.encrypted" :to="{ path:'/alarm/:jobId', name: 'alarm', params: { jobId: props.item.id }}">
+            <router-link v-if="!props.item.encrypted"
+                         :to="{ path:'/alarm/:jobId', name: 'alarm', params: { jobId: props.item.id }}"
+            >
               {{ props.item.title }}
             </router-link>
             <span v-if="props.item.encrypted">{{ props.item.title}}</span>
@@ -33,7 +35,9 @@
             {{ props.item.catchword }}
           </td>
           <td class="text-xs-left">
-            <v-btn v-if="isAdmin || (!props.item.onlyAdminCanDelete && canWrite)" icon @click="deleteJob(props.item.id)">
+            <v-btn v-if="isAdmin || (!props.item.onlyAdminCanDelete && canWrite)" icon
+                   @click="deleteJob(props.item.id)"
+            >
               <v-icon title="löschen">
                 mdi-trash-can-outline
               </v-icon>
@@ -56,9 +60,9 @@
           </td>
         </template>
       </v-data-table>
-      <v-snackbar v-model="errorSnackbar" :timeout="16000" :auto-height="true" :top="true" color="error">
+      <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
         {{errorSnackbarText}}
-        <v-btn flat @click="errorSnackbar = false">
+        <v-btn text @click="errorSnackbar = false">
           Schließen
         </v-btn>
       </v-snackbar>
@@ -72,6 +76,23 @@
   import {mapActions, mapMutations, mapGetters} from 'vuex'
 
   export default {
+    components: {
+      Toolbar
+    },
+    data() {
+      return {
+        loading: this.loading,
+        canDelete: this.canDelete,
+        errorSnackbarText: '',
+        errorSnackbar: false,
+        pagination: {
+          sortBy: 'start',
+          descending: true,
+          rowsPerPage: -1
+        },
+        headers: this.headers
+      }
+    },
     computed: {
       ...mapGetters({
         jobById: 'jobById',
@@ -84,12 +105,12 @@
         currentJobId: 'currentJobId'
       }),
       // were not able to get the watch work with wsConnected as mapGetters => implement computed property manually
-      wsConnected () {
+      wsConnected() {
         return this.$store.state.socket.isConnected
       }
     },
     watch: {
-      wsConnected () {
+      wsConnected() {
         console.log(`WebSocket connection state changed. Connected: ${this.wsConnected}`)
         if (this.wsConnected) {
           let jobId = this.currentJobId
@@ -100,10 +121,10 @@
         }
       }
     },
-    created () {
+    created() {
       // this.$emit('load-jobs') // trigger loading jobs at app level
     },
-    mounted () {
+    mounted() {
       this.loadAllJobs()
     },
     methods: {
@@ -116,14 +137,19 @@
         'decryptJobById', // map `this.decryptJobById()` to `this.$store.dispatch('decryptJobById')`
         'tempDecryptJobById' // map `this.tempDecryptJobById()` to `this.$store.dispatch('tempDecryptJobById')`
       ]),
-      loadAllJobs () {
+      loadAllJobs() {
         if (this.loading) {
           return
         }
         this.loading = true
         this.storeClearCurrentJobId()
         this.storeRemoveDecryptedJobs()
-        this.requestJobsFromServer({$session: this.$session, $route: this.$route, $router: this.$router, requestOptions: {withImages: false}})
+        this.requestJobsFromServer({
+          $session: this.$session,
+          $route: this.$route,
+          $router: this.$router,
+          requestOptions: {withImages: false}
+        })
           .then(() => {
             this.loading = false
             this.onResize()
@@ -140,7 +166,7 @@
           this._handleError(reason, 'Lesen der Jobliste fehlgeschlagen')
         })
       },
-      onResize () {
+      onResize() {
         const minSizes = {
           end: 'sm',
           keyword: 'md',
@@ -172,7 +198,7 @@
         //   return j
         // })
       },
-      async createJob () {
+      async createJob() {
         const formData = await this.$modalDialogForm({
           message: 'Der eingegebene Titel erscheint in der Einsatzliste und kann später geändert werden.',
           title: 'Neuen Einsatzbericht anlegen',
@@ -193,7 +219,7 @@
             })
         }
       },
-      deleteJob (jobId) {
+      deleteJob(jobId) {
         if (!this.loading) {
           let jobToDelete = this.jobById(jobId)
           if (jobToDelete) {
@@ -203,7 +229,12 @@
               .then(yes => {
                 if (yes) {
                   this.loading = true
-                  this.deleteJobAtServer({$session: this.$session, $route: this.$route, $router: this.$router, jobId: jobId})
+                  this.deleteJobAtServer({
+                    $session: this.$session,
+                    $route: this.$route,
+                    $router: this.$router,
+                    jobId: jobId
+                  })
                     .then(() => {
                       this.loading = false
                     })
@@ -217,7 +248,7 @@
           }
         }
       },
-      async encryptJob (jobId) {
+      async encryptJob(jobId) {
         if (!this.loading) {
           let jobToEncrypt = this.jobById(jobId)
           let title = jobToEncrypt.title
@@ -236,12 +267,15 @@
           }
         }
       },
-      async decryptJob (jobId) {
+      async decryptJob(jobId) {
         if (!this.loading) {
           if (this.canDecrypt) {
             const message = 'Zum Entschlüsseln muss das Passwort für den Dechiffrierschlüssel eingegeben werden:'
             const passphrase = await this.$askPassphrase(message, {
-              title: 'Passwort eingeben', idForm: 'decryptionKeyPassphrase', label: 'Passwort', btnTextOk: 'Dechiffrieren'
+              title: 'Passwort eingeben',
+              idForm: 'decryptionKeyPassphrase',
+              label: 'Passwort',
+              btnTextOk: 'Dechiffrieren'
             })
             if (passphrase) {
               try {
@@ -257,19 +291,27 @@
           }
         }
       },
-      async showEncrypted (jobId) {
+      async showEncrypted(jobId) {
         if (!this.loading) {
           if (this.canDecrypt) {
             const message = 'Zum Entschlüsseln muss das Passwort für den Dechiffrierschlüssel eingegeben werden:'
             const passphrase = await this.$askPassphrase(message, {
-              title: 'Passwort eingeben', idForm: 'decryptionKeyPassphrase', label: 'Passwort', btnTextOk: 'Dechiffrieren', needStrongPassword: false
+              title: 'Passwort eingeben',
+              idForm: 'decryptionKeyPassphrase',
+              label: 'Passwort',
+              btnTextOk: 'Dechiffrieren',
+              needStrongPassword: false
             })
             if (passphrase) {
               const encryptionKeyName = this.$session.get('encryptionKeyName')
               if (passphrase) {
                 try {
                   this.loading = true
-                  const id = await this.tempDecryptJobById({jobId: jobId, passphrase: passphrase, encryptionKeyName: encryptionKeyName})
+                  const id = await this.tempDecryptJobById({
+                    jobId: jobId,
+                    passphrase: passphrase,
+                    encryptionKeyName: encryptionKeyName
+                  })
                   this.loading = false
                   this.$router.push(`/alarm/${id}`)
                 } catch (ex) {
@@ -282,7 +324,7 @@
           }
         }
       },
-      _hasRight (right) {
+      _hasRight(right) {
         switch (right) {
           case 'read':
             return this.canRead
@@ -313,23 +355,6 @@
         this.errorSnackbarText = `${snackText}: ${errorMessage}`
         this.errorSnackbar = true
         console.log(snackText, ex)
-      }
-    },
-    components: {
-      Toolbar
-    },
-    data () {
-      return {
-        loading: this.loading,
-        canDelete: this.canDelete,
-        errorSnackbarText: '',
-        errorSnackbar: false,
-        pagination: {
-          sortBy: 'start',
-          descending: true,
-          rowsPerPage: -1
-        },
-        headers: this.headers
       }
     }
   }

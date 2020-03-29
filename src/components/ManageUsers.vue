@@ -47,13 +47,13 @@
           </td>
         </template>
       </v-data-table>
-      <v-snackbar v-model="errorSnackbar" :timeout="16000" :auto-height="true" :top="true" color="error">
+      <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
         {{errorSnackbarText}}
         <v-btn flat @click="errorSnackbar = false">
           Schließen
         </v-btn>
       </v-snackbar>
-      <v-snackbar v-model="snackbar" :timeout="snackbarTimeout" :auto-height="true" :top="true" :color="snackbarColor">
+      <v-snackbar v-model="snackbar" :timeout="snackbarTimeout" :top="true" :color="snackbarColor">
         {{snackbarText}}
         <v-btn flat @click="snackbar = false">
           Schließen
