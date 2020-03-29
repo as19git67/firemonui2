@@ -11,12 +11,14 @@
               <v-toolbar-title>Anmelden</v-toolbar-title>
             </v-toolbar>
             <v-card-text>
-              <v-text-field id="username" v-model="username" prepend-icon="mdi-person" name="username" label="Benutzername" type="text" default
+              <v-text-field id="username" v-model="username" prepend-inner-icon="mdi-account-circle" name="username"
+                            label="Benutzername" type="text" default
                             autofocus
               />
             </v-card-text>
             <v-layout align-center justify-center>
-              <v-text-field id="code" v-model="code" prepend-inner-icon="mdi-sim_card" name="code" type="text" autocomplete="off" mask="# # # # # #" outline
+              <v-text-field id="code" v-model="code" prepend-icon="mdi-sim" name="code" type="text" autocomplete="off"
+                            mask="# # # # # #" outline
                             label="Authenticator App Code" class="codefield" @keyup.enter="validateCode()"
               />
             </v-layout>
@@ -43,7 +45,10 @@
 
   export default {
     name: 'Login',
-    data () {
+    components: {
+      Toolbar
+    },
+    data() {
       return {
         inprogress: this.inprogress,
         error: this.error,
@@ -51,7 +56,7 @@
         code: this.code
       }
     },
-    beforeRouteEnter (to, from, next) {
+    beforeRouteEnter(to, from, next) {
       // called before the route that renders this component is confirmed.
       // does NOT have access to `this` component instance,
       // because it has not been created yet when this guard is called!
@@ -118,9 +123,6 @@
             this.error = 'Fehler beim Prüfen des Codes'
           })
       }
-    },
-    components: {
-      Toolbar
     }
   }
 </script>

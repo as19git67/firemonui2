@@ -1,19 +1,13 @@
 <template>
   <div class="attendeeslist">
     <h1>Anwesenheitsliste</h1>
-    <v-data-table :headers="headers" :items="staffWithStatus" :pagination.sync="pagination" class="elevation-1">
-      <template slot="items" slot-scope="props">
-        <td class="attending-state">
-          <v-checkbox :input-value="props.item.attended" primary hide-details :disabled="props.item.isToggleAttendedDisabled"
-                      @click.stop="toggleAttended(props.item.id)"
-          />
-        </td>
-        <td class="text-xs-left lastname">
-          {{ props.item.lastname }}
-        </td>
-        <td class="text-xs-left">
-          {{ props.item.firstname }}
-        </td>
+    <v-data-table :headers="headers" :items="staffWithStatus" :disable-pagination="true" sort-by="lastname"
+                  hide-default-footer class="elevation-1">
+      <template v-slot:item.attended="{ item }">
+        <v-checkbox class="mt-0" :input-value="item.attended" primary hide-details
+                    :disabled="item.isToggleAttendedDisabled"
+                    @click.stop="toggleAttended(item.id)"
+        />
       </template>
     </v-data-table>
     <v-snackbar v-model="saveStatus" :top="false" :timeout="6000" dark color="info">
@@ -34,7 +28,7 @@
 
   export default {
     name: 'Attendees',
-    data () {
+    data() {
       return {
         saveStatus: this.saveStatus,
         staffWithStatus: this.staffWithStatus,
@@ -46,8 +40,8 @@
           rowsPerPage: -1
         },
         headers: [
-          {text: 'Anwesend', sortable: true, value: 'attended'},
-          {text: 'Name', align: 'left', sortable: true, value: 'lastname'},
+          {text: 'Anwesend', sortable: true, value: 'attended', width: '10em'},
+          {text: 'Name', align: 'left', sortable: true, value: 'lastname', width: '12em'},
           {text: 'Vorname', align: 'left', sortable: true, value: 'firstname'}
         ]
       }
@@ -70,11 +64,11 @@
         },
         deep: true
       },
-      staff (newList, oldList) {
+      staff(newList, oldList) {
         this._setStaffWithStatus()
       }
     },
-    created () {
+    created() {
       this.readonly = !this.canWrite || this.currentJob.readonly
       this._setStaffWithStatus()
     },
@@ -83,7 +77,7 @@
         'addAttendeeToJob', // map `this.addAttendeeToJob()` to `this.$store.dispatch('addAttendeeToJob')`
         'removeAttendeeFromJob' // map `this.removeAttendeeFromJob()` to `this.$store.dispatch('removeAttendeeFromJob')`
       ]),
-      async toggleAttended (id) {
+      async toggleAttended(id) {
         if (!this.loading && !this.readonly) {
           this.error = ''
           this.loading = true
@@ -120,7 +114,7 @@
         this.errorSnackbar = true
         console.log(snackText, ex)
       },
-      _setStaffWithStatus () {
+      _setStaffWithStatus() {
         const ro = this.readonly
         const self = this
         this.staffWithStatus = _.map(this.staff, (person) => {
@@ -140,14 +134,6 @@
 </script>
 
 <style scoped>
-  .attending-state {
-    width: 4em;
-  }
-
-  .lastname {
-    width: 12em;
-  }
-
   .attendeeslist h1 {
     padding-left: 24px;
     padding-right: 24px;

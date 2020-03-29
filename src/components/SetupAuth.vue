@@ -12,10 +12,12 @@
             </v-toolbar>
             <v-card-text>
               <v-form v-model="valid">
-                <v-text-field id="name" v-model="name" prepend-icon="person" name="name" label="Benutzername" type="text"
+                <v-text-field id="name" v-model="name" prepend-icon="mdi-account" name="name" label="Benutzername"
+                              type="text"
                               :rules="[rules.required, rules.userValid]"
                 />
-                <v-text-field id="email" v-model="email" prepend-icon="email" name="email" label="Email" type="text" :rules="[rules.required, rules.email]"
+                <v-text-field id="email" v-model="email" prepend-icon="mdi-email" name="email" label="Email" type="text"
+                              :rules="[rules.required, rules.email]"
                               @keyup.enter="startSetupAuth()"
                 />
               </v-form>

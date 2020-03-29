@@ -7,7 +7,7 @@
           :readonly="readonly"
           label="Einsatztitel"
           hint="Der Title erscheint in der Einsatzliste"
-          prepend-icon="title"
+          prepend-icon="mdi-format-title"
           required
         />
         <v-layout>
@@ -18,7 +18,7 @@
               :items="attendeeList"
               placeholder="Tippe um die Person zu suchen"
               label="Einsatzleiter"
-              prepend-icon="person"
+              prepend-icon="mdi-human-greeting"
               return-object
             />
           </v-flex>
@@ -29,7 +29,7 @@
               :items="attendeeList"
               placeholder="Tippe um die Person zu suchen"
               label="Bericht Ersteller"
-              prepend-icon="person"
+              prepend-icon="mdi-account-edit"
               hint="Wer hat den Einsatzbericht erstellt?"
               return-object
             />
@@ -40,41 +40,52 @@
             <v-menu ref="menuStart" v-model="menuStart" :close-on-content-click="true" :nudge-right="20" lazy transition="scale-transition" offset-y full-width
                     min-width="290px"
             >
-              <v-text-field slot="activator" v-model="form.startFormatted" label="Einsatzbeginn" prepend-icon="event" readonly />
+              <v-text-field slot="activator" v-model="form.startFormatted" label="Einsatzbeginn"
+                            prepend-icon="mdi-timetable" readonly/>
               <v-date-picker v-model="form.startDate" :readonly="readonly" label="Einsatzbeginn" locale="de" />
             </v-menu>
           </v-flex>
           <v-flex>
-            <v-text-field v-model="form.startTime" label="Einsatzbeginn" :rules="timeRules" prepend-icon="access_time" :readonly="readonly" />
+            <v-text-field v-model="form.startTime" label="Einsatzbeginn" :rules="timeRules"
+                          prepend-icon="mdi-clock-outline" :readonly="readonly"/>
           </v-flex>
           <v-flex>
             <v-menu ref="menuEnd" v-model="menuEnd" :close-on-content-click="true" :nudge-right="20" lazy transition="scale-transition" offset-y full-width
                     min-width="290px"
             >
-              <v-text-field slot="activator" v-model="form.endFormatted" label="Ende (Datum)" prepend-icon="event" readonly />
+              <v-text-field slot="activator" v-model="form.endFormatted" label="Ende (Datum)"
+                            prepend-icon="mdi-timetable" readonly/>
               <v-date-picker v-model="form.endDate" :readonly="readonly" locale="de" />
             </v-menu>
           </v-flex>
           <v-flex>
-            <v-text-field v-model="form.endTime" label="Ende (Zeit)" :rules="timeRules" prepend-icon="access_time" :readonly="readonly" />
+            <v-text-field v-model="form.endTime" label="Ende (Zeit)" :rules="timeRules" prepend-icon="mdi-clock-outline"
+                          :readonly="readonly"/>
           </v-flex>
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-text-field v-model="form.duration" prepend-icon="timer" label="Einsatzdauer in Stunden" :readonly="true" />
+            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden"
+                          :readonly="true"/>
           </v-flex>
           <v-flex>
-            <v-text-field v-model="attendeesCountOfCurrentJob" label="Anzahl Anwesende" prepend-icon="people" :readonly="true" />
+            <v-text-field v-model="attendeesCountOfCurrentJob" label="Anzahl Anwesende"
+                          prepend-icon="mdi-account-multiple-check" :readonly="true"/>
           </v-flex>
         </v-layout>
-        <v-text-field v-model.lazy="form.incident" :readonly="readonly" prepend-icon="sms" label="Alarmbild" required />
-        <v-text-field v-model.lazy="form.location" :readonly="readonly" prepend-icon="near_me" label="Einsatzort" required />
-        <v-text-field v-if="form.material" v-model.lazy="form.material" :readonly="readonly" prepend-icon="commute" label="Alarmierte Fahrzeuge" />
-        <v-text-field v-model.lazy="form.others" :readonly="readonly" prepend-icon="commute" label="Andere Wehren, Polizei, Rettungsdienst"
+        <v-text-field v-model.lazy="form.incident" :readonly="readonly" prepend-icon="mdi-comment-text"
+                      label="Alarmbild" required/>
+        <v-text-field v-model.lazy="form.location" :readonly="readonly" prepend-icon="mdi-crosshairs-gps"
+                      label="Einsatzort" required/>
+        <v-text-field v-if="form.material" v-model.lazy="form.material" :readonly="readonly"
+                      prepend-icon="mdi-car-multiple" label="Alarmierte Fahrzeuge"/>
+        <v-text-field v-model.lazy="form.others" :readonly="readonly" prepend-icon="mdi-car-multiple"
+                      label="Andere Wehren, Polizei, Rettungsdienst"
                       required
         />
-        <v-textarea v-model.lazy="form.text" :readonly="readonly" label="Einsatzbeschreibung" prepend-icon="subject" required />
-        <v-icon>commute</v-icon>
+        <v-textarea v-model.lazy="form.text" :readonly="readonly" label="Einsatzbeschreibung"
+                    prepend-icon="mdi-note-text" required/>
+        <v-icon>mdi-fire-truck</v-icon>
         <h3 class="materialListTitle">
           Eingesetztes Material (Fahrzeuge, etc.):
         </h3>
@@ -82,7 +93,7 @@
           <v-container fluid>
             <v-layout v-for="mat in materialList" :key="mat.id" row>
               <v-flex xs3>
-                <v-text-field v-model="mat.name" readonly />
+                <v-text-field v-model="mat.name" readonly/>
               </v-flex>
               <v-flex v-for="value in mat.values" :key="`${mat.id}-${value.id}`" class="material-value">
                 <v-text-field v-if="value.type==='string'" v-model.lazy="value.value" :readonly="readonly" :label="value.label" required />
@@ -92,24 +103,26 @@
                 <v-text-field v-if="value.type==='float'" v-model.lazy="value.value" :readonly="readonly" :label="value.label" :rules="floatRules"
                               required
                 />
-                <v-autocomplete v-if="value.type==='attendee'" v-model.lazy="value.value" :readonly="readonly" :items="attendeeList"
-                                placeholder="Tippe um die Person zu suchen" :label="value.label" required prepend-icon="person" return-object
+                <v-autocomplete v-if="value.type==='attendee'" v-model.lazy="value.value" :readonly="readonly"
+                                :items="attendeeList"
+                                placeholder="Tippe um die Person zu suchen" :label="value.label" required
+                                prepend-icon="mdi-account" return-object
                 />
               </v-flex>
               <v-flex v-if="!readonly" align-self-center="true" xs1>
                 <v-btn icon :disabled="readonly" @click="removeMaterial(mat.id)">
                   <v-icon title="Material löschen">
-                    remove_circle_outline
+                    mdi-playlist-minus
                   </v-icon>
                 </v-btn>
               </v-flex>
             </v-layout>
-            <v-layout v-if="!readonly" row>
+            <v-layout v-if="!readonly" row class="ml-5">
               <v-flex xs11>
-                <v-label>Fahrzeuge und Geräte hinzufügen</v-label>
+                <v-label>Fahrzeuge und Geräte hinzufügen:</v-label>
                 <v-btn icon :disabled="readonly" @click="showMaterialPicker">
                   <v-icon title="weitere Fahrzeuge oder Geräte hinzufügen">
-                    add_circle_outline
+                    mdi-playlist-plus
                   </v-icon>
                 </v-btn>
               </v-flex>
@@ -118,12 +131,14 @@
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-text-field v-model.lazy="form.rescued" :readonly="readonly" prepend-icon="people" :rules="numberRules"
+            <v-text-field v-model.lazy="form.rescued" :readonly="readonly" prepend-icon="mdi-account-heart-outline"
+                          :rules="numberRules"
                           label="Anzahl gerettete Personen"
             />
           </v-flex>
           <v-flex>
-            <v-text-field v-model.lazy="form.recovered" :readonly="readonly" prepend-icon="people" :rules="numberRules"
+            <v-text-field v-model.lazy="form.recovered" :readonly="readonly" prepend-icon="mdi-ghost"
+                          :rules="numberRules"
                           label="Anzahl geborgene Personen"
             />
           </v-flex>

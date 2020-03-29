@@ -1,12 +1,12 @@
 <template>
   <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" app dark color="accent" fixed flat>
-    <v-toolbar-title class="ml-0 pl-3">
+    <v-toolbar-title class="ml-0 pl-3 toolbar-title">
       <span class="hidden-sm-and-down">Alarm Monitor</span>
       <span v-if="subTitle" :class="notificationClass">{{subTitle}}</span>
       <span v-if="username">({{username}})</span>
       <span v-if="isInDevMode">(Development Mode)</span>
     </v-toolbar-title>
-    <v-spacer />
+    <v-spacer/>
     <v-btn v-if="haveDataToSave" title="Abbrechen" icon @click="cancel()">
       <v-icon>mdi-cancel</v-icon>
     </v-btn>
@@ -36,10 +36,26 @@
 
   export default {
     name: 'Toolbar',
+    data() {
+      return {
+        canLogout: this.canLogout,
+        canLogIn: this.canLogIn,
+        isLoggedIn: this.isLoggedIn,
+        username: this.username,
+        isInDevMode: window.webpackHotUpdate,
+        subTitle: this.subTitle
+      }
+    },
     computed: {
-      ...mapGetters({haveDataToSave: 'haveDataToSave', currentJob: 'currentJob', jobsList: 'jobsList', haveActiveJob: 'haveActiveJob', isAdmin: 'isAdmin'}),
+      ...mapGetters({
+        haveDataToSave: 'haveDataToSave',
+        currentJob: 'currentJob',
+        jobsList: 'jobsList',
+        haveActiveJob: 'haveActiveJob',
+        isAdmin: 'isAdmin'
+      }),
       notificationClass: {
-        get () {
+        get() {
           return this.haveActiveJob ? 'red darken-1' : ''
         }
       }
@@ -52,7 +68,7 @@
         deep: true
       }
     },
-    created () {
+    created() {
       let job = this.currentJob
       if (job && job.keyword && job.catchword) {
         this.subTitle = `${job.keyword} - ${job.catchword}`
@@ -60,16 +76,6 @@
         this.subTitle = undefined
       }
       this._checkSession()
-    },
-    data () {
-      return {
-        canLogout: this.canLogout,
-        canLogIn: this.canLogIn,
-        isLoggedIn: this.isLoggedIn,
-        username: this.username,
-        isInDevMode: window.webpackHotUpdate,
-        subTitle: this.subTitle
-      }
     },
     methods: {
       ...mapMutations(['storeAddJobs']),
@@ -86,7 +92,10 @@
         this.$router.go(0)
       },
       login: function () {
-        this.$router.push('login')
+        const path = '/login'
+        if (this.$route.path !== path) {
+          this.$router.push(path)
+        }
       },
       cancel: function () {
         // todo confirmation
@@ -107,5 +116,8 @@
 </script>
 
 <style scoped>
+  .v-toolbar span:not(:first-child) {
+    margin-left: 3px;
+  }
 
 </style>

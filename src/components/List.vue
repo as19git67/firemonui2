@@ -1,17 +1,17 @@
 <template>
   <div>
     <template>
-      <Toolbar />
+      <Toolbar/>
     </template>
     <div class="joblist">
-      <h1>
+      <v-toolbar-title class="ml-0 mt-2 mb-2 pl-4">
         Einsatzliste
         <v-btn icon @click="createJob">
           <v-icon title="manuell anlegen">
             mdi-plus
           </v-icon>
         </v-btn>
-      </h1>
+      </v-toolbar-title>
       <v-data-table v-resize="onResize" :headers="headers" :items="jobsList" class="elevation-1">
         <template v-slot:item.start="{ item }">
           {{ item.start.format('L LTS') }}
@@ -19,45 +19,43 @@
         <template v-if="$vuetify.breakpoint.smAndUp" v-slot:item.end="{ item }">
           {{ item.end.format('L LTS') }}
         </template>
-        <template slot="items" slot-scope="props">
-          <td class="text-xs-left">
-            <router-link v-if="!props.item.encrypted"
-                         :to="{ path:'/alarm/:jobId', name: 'alarm', params: { jobId: props.item.id }}"
-            >
-              {{ props.item.title }}
-            </router-link>
-            <span v-if="props.item.encrypted">{{ props.item.title}}</span>
-          </td>
-          <td v-if="$vuetify.breakpoint.mdAndUp" class="text-xs-left">
-            {{ props.item.keyword }}
-          </td>
-          <td v-if="$vuetify.breakpoint.lgAndUp" class="text-xs-left">
-            {{ props.item.catchword }}
-          </td>
-          <td class="text-xs-left">
-            <v-btn v-if="isAdmin || (!props.item.onlyAdminCanDelete && canWrite)" icon
-                   @click="deleteJob(props.item.id)"
-            >
-              <v-icon title="löschen">
-                mdi-trash-can-outline
-              </v-icon>
-            </v-btn>
-            <v-btn v-if="props.item.encrypted && canDecrypt" icon @click="decryptJob(props.item.id)">
-              <v-icon title="entschlüsseln">
-                mdi-lock-reset
-              </v-icon>
-            </v-btn>
-            <v-btn v-if="!props.item.encrypted && canEncrypt" icon @click="encryptJob(props.item.id)">
-              <v-icon title="verschlüsseln">
-                mdi-lock-outline
-              </v-icon>
-            </v-btn>
-            <v-btn v-if="props.item.encrypted && canDecrypt" icon @click="showEncrypted(props.item.id)">
-              <v-icon title="anzeigen">
-                mdi-eye-outline
-              </v-icon>
-            </v-btn>
-          </td>
+        <template v-slot:item.title="{ item }">
+          <router-link v-if="!item.encrypted"
+                       :to="{ path:'/alarm/:jobId', name: 'alarm', params: { jobId: item.id }}"
+          >
+            {{ item.title }}
+          </router-link>
+          <span v-if="item.encrypted">{{ item.title}}</span>
+        </template>
+        <template v-if="$vuetify.breakpoint.mdAndUp" v-slot:item.keyword="{ item }">
+          {{ item.keyword }}
+        </template>
+        <template v-if="$vuetify.breakpoint.lgAndUp" v-slot:item.catchword="{ item }">
+          {{ item.catchword }}
+        </template>
+        <template v-slot:item.actions="{ item }">
+          <v-btn v-if="isAdmin || (!item.onlyAdminCanDelete && canWrite)" icon
+                 @click="deleteJob(item.id)"
+          >
+            <v-icon title="löschen">
+              mdi-trash-can-outline
+            </v-icon>
+          </v-btn>
+          <v-btn v-if="item.encrypted && canDecrypt" icon @click="decryptJob(item.id)">
+            <v-icon title="entschlüsseln">
+              mdi-lock-reset
+            </v-icon>
+          </v-btn>
+          <v-btn v-if="!item.encrypted && canEncrypt" icon @click="encryptJob(item.id)">
+            <v-icon title="verschlüsseln">
+              mdi-lock-outline
+            </v-icon>
+          </v-btn>
+          <v-btn v-if="item.encrypted && canDecrypt" icon @click="showEncrypted(item.id)">
+            <v-icon title="anzeigen">
+              mdi-eye-outline
+            </v-icon>
+          </v-btn>
         </template>
       </v-data-table>
       <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
@@ -178,7 +176,7 @@
           {text: 'Titel', align: 'left', sortable: true, value: 'title'},
           {text: 'Schlüsselwort', sortable: true, value: 'keyword'},
           {text: 'Schlagwort', sortable: true, value: 'catchword'},
-          {text: 'Aktionen', sortable: false}
+          {text: 'Aktionen', sortable: false, value: 'actions'}
         ], (h) => {
           if (minSizes[h.value]) {
             const minSize = minSizes[h.value]
@@ -362,8 +360,7 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  h1, h2 {
-    font-weight: normal;
+  .joblist > .xheadline {
     padding-left: 1em;
   }
 
