@@ -17,9 +17,14 @@
               />
             </v-card-text>
             <v-layout align-center justify-center>
-              <v-text-field id="code" v-model="code" prepend-icon="mdi-sim" name="code" type="text" autocomplete="off"
-                            mask="# # # # # #" outline
-                            label="Authenticator App Code" class="codefield" @keyup.enter="validateCode()"
+              <v-text-field id="code" v-model="code" name="code" type="text" autocomplete="off"
+                            outlined
+                            solo
+                            flat
+                            persistent-hint
+                            hint="Authenticator App Code"
+                            class="codefield display-2 justify-center"
+                            @keyup.enter="validateCode()"
               />
             </v-layout>
             <v-card-actions>
@@ -118,9 +123,13 @@
           .catch(error => {
             clearTimeout(this.timer)
             delete this.timer
-            console.log(error)
             this.inprogress = false
-            this.error = 'Fehler beim Prüfen des Codes'
+            if (error.response && error.response.status === 404) {
+              this.error = 'Falscher Code'
+            } else {
+              console.log(error)
+              this.error = 'Fehler beim Prüfen des Codes'
+            }
           })
       }
     }
@@ -129,17 +138,14 @@
 
 <style scoped>
   .codefield {
-    max-width: 7em;
-    font-size: 34px;
-    font-weight: 400;
-    margin-top: 20px;
-    margin-bottom: 0;
-    padding: 0;
+    max-width: 4.5em;
   }
 </style>
 
 <style>
   .codefield input {
-    max-height: unset !important;
+    margin-top: 6px;
+    margin-bottom: 3px;
+    font-family: monospace;
   }
 </style>

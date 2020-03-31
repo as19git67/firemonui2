@@ -50,12 +50,32 @@
                           prepend-icon="mdi-clock-outline" :readonly="readonly"/>
           </v-flex>
           <v-flex>
-            <v-menu ref="menuEnd" v-model="menuEnd" :close-on-content-click="true" :nudge-right="20" lazy transition="scale-transition" offset-y full-width
+            <v-menu ref="menuEnd" v-model="menuEnd" :close-on-content-click="true"
+                    :nudge-right="20" lazy transition="scale-transition" offset-y full-width
                     min-width="290px"
             >
               <v-text-field slot="activator" v-model="form.endFormatted" label="Ende (Datum)"
                             prepend-icon="mdi-timetable" readonly/>
               <v-date-picker v-model="form.endDate" :readonly="readonly" locale="de" />
+            </v-menu>
+            <v-menu
+              v-model="menu2"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              min-width="290px"
+            >
+              <template v-slot:activator="{ on }">
+                <v-text-field
+                  v-model="form.endFormatted"
+                  label="Picker without buttons"
+                  prepend-icon="event"
+                  readonly
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="form.endFormatted" @input="menu2 = false"></v-date-picker>
             </v-menu>
           </v-flex>
           <v-flex>
@@ -171,6 +191,123 @@
   export default {
     name: 'Report',
     components: {MaterialPicker},
+    data: function () {
+      if (!this.form) {
+        this.jobKeys = ['title', 'startDate', 'startTime', 'startFormatted', 'endDate', 'endTime', 'endFormatted']
+        this.jobReportKeys = ['director', 'writer', 'duration', 'incident', 'location', 'text', 'material', 'others', 'rescued', 'recovered']
+        this.form = {}
+        const self = this
+        _.each(this.jobKeys, function (k) {
+          self.form[k] = ''
+        })
+        _.each(this.jobReportKeys, function (k) {
+          self.form[k] = ''
+        })
+        // The following is an example of the materialList structure
+        /*
+                "materialList": [
+                  {
+                    "id": 1,
+                    "matId": "lima",
+                    "category": "generic",
+                    "name": "Lima",
+                    "values": [
+                      {
+                        "id": "text",
+                        "label": "",
+                        "type": "string",
+                        "value": "Sepp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "matId": "hlf",
+                    "category": "vehicle",
+                    "name": "HLF",
+                    "values": [
+                      {
+                        "id": "driver",
+                        "label": "Fahrer",
+                        "type": "attendee",
+                        "value": "Florian Alt"
+                      },
+                      {
+                        "id": "kmStart",
+                        "label": "km Stand Start",
+                        "type": "float",
+                        "value": "1000"
+                      },
+                      {
+                        "id": "kmEnde",
+                        "label": "km Stand Ende",
+                        "type": "float",
+                        "value": "1100"
+                      }
+                    ]
+                  }
+                ]
+        */
+        this.materialList = []
+      }
+      return {
+        errorSnackbarText: '',
+        errorSnackbar: false,
+        materialPickerVisible: false,
+        attendeeList: this.attendeeList,
+        form: this.form,
+        materialList: this.materialList,
+        readonly: this.readonly,
+        dateFailure: this.dateFailure,
+        menuStart: false,
+        menuEnd: false,
+        valid: false,
+        numberRules: [
+          v => {
+            let re = (/^([0-9]+)$/).test(v)
+            if (re) {
+              return true
+            } else {
+              return 'Wert muß eine Zahl sein'
+            }
+          }
+        ],
+        integerRules: [
+          v => {
+            let i = parseInt(v)
+            if (isNaN(i) || i.toString() !== v) {
+              return 'Wert muß eine Zahl ohne Komma sein'
+            } else {
+              return true
+            }
+          }
+        ],
+        floatRules: [
+          v => {
+            if (v === undefined) {
+              return true
+            } else {
+              let f = v.replace(/\./g, '').replace(',', '.')
+              if (isNaN(parseFloat(f)) || !isFinite(f)) {
+                return 'Wert muß eine Zahl sein'
+              } else {
+                return true
+              }
+            }
+          }
+        ],
+        timeRules: [
+          v => {
+            let re = (/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).test(v)
+            if (!re) {
+              return 'Zeit im Format HH:MM eingeben'
+            } else {
+              return true
+            }
+          }
+        ]
+      }
+    },
     computed: {
       ...mapGetters({
         haveDataToSave: 'haveDataToSave',
@@ -405,123 +542,6 @@
     mounted () {
       this.dateFailure = false
       this.readonly = !this.canWrite || this.currentJob.readonly
-    },
-    data: function () {
-      if (!this.form) {
-        this.jobKeys = ['title', 'startDate', 'startTime', 'startFormatted', 'endDate', 'endTime', 'endFormatted']
-        this.jobReportKeys = ['director', 'writer', 'duration', 'incident', 'location', 'text', 'material', 'others', 'rescued', 'recovered']
-        this.form = {}
-        const self = this
-        _.each(this.jobKeys, function (k) {
-          self.form[k] = ''
-        })
-        _.each(this.jobReportKeys, function (k) {
-          self.form[k] = ''
-        })
-        // The following is an example of the materialList structure
-        /*
-                "materialList": [
-                  {
-                    "id": 1,
-                    "matId": "lima",
-                    "category": "generic",
-                    "name": "Lima",
-                    "values": [
-                      {
-                        "id": "text",
-                        "label": "",
-                        "type": "string",
-                        "value": "Sepp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": 2,
-                    "matId": "hlf",
-                    "category": "vehicle",
-                    "name": "HLF",
-                    "values": [
-                      {
-                        "id": "driver",
-                        "label": "Fahrer",
-                        "type": "attendee",
-                        "value": "Florian Alt"
-                      },
-                      {
-                        "id": "kmStart",
-                        "label": "km Stand Start",
-                        "type": "float",
-                        "value": "1000"
-                      },
-                      {
-                        "id": "kmEnde",
-                        "label": "km Stand Ende",
-                        "type": "float",
-                        "value": "1100"
-                      }
-                    ]
-                  }
-                ]
-        */
-        this.materialList = []
-      }
-      return {
-        errorSnackbarText: '',
-        errorSnackbar: false,
-        materialPickerVisible: false,
-        attendeeList: this.attendeeList,
-        form: this.form,
-        materialList: this.materialList,
-        readonly: this.readonly,
-        dateFailure: this.dateFailure,
-        menuStart: false,
-        menuEnd: false,
-        valid: false,
-        numberRules: [
-          v => {
-            let re = (/^([0-9]+)$/).test(v)
-            if (re) {
-              return true
-            } else {
-              return 'Wert muß eine Zahl sein'
-            }
-          }
-        ],
-        integerRules: [
-          v => {
-            let i = parseInt(v)
-            if (isNaN(i) || i.toString() !== v) {
-              return 'Wert muß eine Zahl ohne Komma sein'
-            } else {
-              return true
-            }
-          }
-        ],
-        floatRules: [
-          v => {
-            if (v === undefined) {
-              return true
-            } else {
-              let f = v.replace(/\./g, '').replace(',', '.')
-              if (isNaN(parseFloat(f)) || !isFinite(f)) {
-                return 'Wert muß eine Zahl sein'
-              } else {
-                return true
-              }
-            }
-          }
-        ],
-        timeRules: [
-          v => {
-            let re = (/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).test(v)
-            if (!re) {
-              return 'Zeit im Format HH:MM eingeben'
-            } else {
-              return true
-            }
-          }
-        ]
-      }
     },
     methods: {
       ...mapActions([

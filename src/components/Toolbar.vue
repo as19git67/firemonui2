@@ -1,8 +1,8 @@
 <template>
   <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" app dark color="accent" fixed flat>
     <v-toolbar-title class="ml-0 pl-3 toolbar-title">
-      <span class="hidden-sm-and-down">Alarm Monitor</span>
-      <span v-if="subTitle" :class="notificationClass">{{subTitle}}</span>
+      <span class="hidden-sm-and-down">Alarm Monitor:</span>
+      <span v-if="subTitle" >{{subTitle}}</span>
       <span v-if="username">({{username}})</span>
       <span v-if="isInDevMode">(Development Mode)</span>
     </v-toolbar-title>

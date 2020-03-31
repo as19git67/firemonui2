@@ -12,12 +12,17 @@
           </v-icon>
         </v-btn>
       </v-toolbar-title>
-      <v-data-table v-resize="onResize" :headers="headers" :items="jobsList" class="elevation-1">
+      <v-data-table v-resize="onResize"
+                    :headers="headers"
+                    :items="jobsList"
+                    class="elevation-1"
+                    hide-default-footer
+                    :disable-pagination="true" >
         <template v-slot:item.start="{ item }">
-          {{ item.start.format('L LTS') }}
+          {{ item.start ? item.start.format('L LTS') : '' }}
         </template>
         <template v-if="$vuetify.breakpoint.smAndUp" v-slot:item.end="{ item }">
-          {{ item.end.format('L LTS') }}
+          {{ item.end ? item.end.format('L LTS') : '' }}
         </template>
         <template v-slot:item.title="{ item }">
           <router-link v-if="!item.encrypted"

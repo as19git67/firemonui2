@@ -17,6 +17,7 @@ module.exports = {
     "plugin:vue/recommended"
   ],
   rules: {
+    "vue/html-closing-bracket-newline": "off",
     "vue/html-closing-bracket-spacing": "off",
     "vue/no-unused-vars": "off",
     "no-unused-vars": "off",

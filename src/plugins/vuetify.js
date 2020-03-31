@@ -47,12 +47,12 @@ export default new Vuetify({
         success: '#73ad0f'
       },
       dark: {
-        primary: '#990b00',
-        secondary: '#0c6672',
+        primary: '#ff0d00',
+        secondary: '#0f9aa9',
         accent: '#bb1e10',
         error: '#9A0D55',
         warning: '#BB6210',
-        info: '#388994',
+        info: '#4ccbda',
         success: '#73ad0f'
       }
     }
