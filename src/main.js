@@ -15,6 +15,7 @@ import VueNativeSock from 'vue-native-websocket'
 import VuetifyConfirm from 'vuetify-confirm'
 import Passphrase from '@/components/Passphrase.vue'
 import ModalDialogForm from '@/components/ModalDialogForm.vue'
+import Confirm from "vuetify-confirm/src/Confirm";
 
 // need the following to replace urls for icons with the ones in this webpack
 delete L.Icon.Default.prototype._getIconUrl
@@ -76,19 +77,27 @@ Vue.use(VueNativeSock, wsUrl, {
 
 Vue.use(VuetifyConfirm, { vuetify })
 
-function InstallPassphrase(Vue) {
+function InstallPassphrase(Vue, options = {}) {
   const property = '$askPassphrase'
+  const vuetify = options.vuetify
+  delete options.vuetify
+  if (!vuetify) {
+    console.warn('Module askPassphrase needs vuetify instance. Use Vue.use(InstallPassphrase, { vuetify })')
+  }
+
+  const Ctor = Vue.extend(Object.assign({vuetify}, Passphrase))
 
   function createDialogCmp(options) {
+    const container = document.querySelector('[data-app=true]') || document.body
     return new Promise(resolve => {
-      const cmp = new Vue(Object.assign(Passphrase, {
+      const cmp = new Ctor(Object.assign({}, {
+        propsData: Object.assign({}, Vue.prototype.$askPassphrase.options, options),
         destroyed: () => {
-          document.body.removeChild(cmp.$el)
+          container.removeChild(cmp.$el)
           resolve(cmp.value)
         }
       }))
-      Object.assign(cmp, Vue.prototype.$askPassphrase.options || {}, options)
-      document.body.appendChild(cmp.$mount().$el)
+      container.appendChild(cmp.$mount().$el)
     })
   }
 
@@ -101,21 +110,29 @@ function InstallPassphrase(Vue) {
   Vue.prototype[property].options = {}
 }
 
-Vue.use(InstallPassphrase)
+Vue.use(InstallPassphrase, {vuetify})
 
-function InstallDialogForm(Vue) {
+function InstallDialogForm(Vue, options = {}) {
   const property = '$modalDialogForm'
+  const vuetify = options.vuetify
+  delete options.vuetify
+  if (!vuetify) {
+    console.warn('Module $modalDialogForm needs vuetify instance. Use Vue.use(InstallDialogForm, { vuetify })')
+  }
+
+  const Ctor = Vue.extend(Object.assign({vuetify}, ModalDialogForm))
 
   function createDialogCmp(options) {
+    const container = document.querySelector('[data-app=true]') || document.body
     return new Promise(resolve => {
-      const cmp = new Vue(Object.assign(ModalDialogForm, {
+      const cmp = new Ctor(Object.assign({}, {
+        propsData: Object.assign({}, Vue.prototype.$modalDialogForm.options, options),
         destroyed: () => {
-          document.body.removeChild(cmp.$el)
-          resolve(cmp.formData)
+          container.removeChild(cmp.$el)
+          resolve(cmp.value)
         }
       }))
-      Object.assign(cmp, Vue.prototype.$modalDialogForm.options || {}, options)
-      document.body.appendChild(cmp.$mount().$el)
+      container.appendChild(cmp.$mount().$el)
     })
   }
 
@@ -127,7 +144,7 @@ function InstallDialogForm(Vue) {
   Vue.prototype[property].options = {}
 }
 
-Vue.use(InstallDialogForm)
+Vue.use(InstallDialogForm, {vuetify})
 
 new Vue({
   store,

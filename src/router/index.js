@@ -79,7 +79,7 @@ const router = new Router({
 
 router.beforeResolve((to, from, next) => {
   const at = from.query.autotoken
-  if (at && !to.query.autotoken) {
+  if (at && to.path !== '/setupauth3' && !to.query.autotoken) {
     // delete from.query.autotoken
     next({path: to.path, query: {autotoken: at}})
     // to.query.autotoken = at

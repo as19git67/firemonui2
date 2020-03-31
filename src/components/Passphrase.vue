@@ -7,18 +7,19 @@
   >
     <v-toolbar
       v-if="Boolean(title)"
-      dark
       :color="color"
       dense
     >
-      <v-icon>vpn_key</v-icon>
+      <v-icon class="mr-3">
+        mdi-key-variant
+      </v-icon>
       <v-toolbar-title
         class="white--text"
         v-text="title"
       />
     </v-toolbar>
-    <v-card>
-      <v-card-text v-html="message" />
+    <v-card class="pt-2">
+      <v-card-text>{{ message }}</v-card-text>
       <v-card-text>
         <v-form
           :id="idForm"
@@ -32,24 +33,24 @@
             type="password"
             default
             autofocus
-            browser-autocomplete="off"
+            autocomplete="off"
             :rules="[rules.required, rules.strongPassword]"
             @keydown.enter="choose(true)"
           />
         </v-form>
       </v-card-text>
       <v-card-actions>
-        <v-spacer />
+        <v-spacer/>
         <v-btn
           :color="buttonLeftColor"
-          flat
+          text
           @click="choose(false)"
         >
           Abbrechen
         </v-btn>
         <v-btn
           :color="buttonRightColor"
-          flat
+          text
           :disabled="!valid"
           @click="choose(true)"
         >
@@ -105,7 +106,7 @@
         default: true
       }
     },
-    data () {
+    data() {
       this.passphrase = ''
       this.valid = false
       return {
@@ -131,12 +132,12 @@
       }
     },
     methods: {
-      choose (value) {
+      choose(value) {
         this.value = value ? this.passphrase : ''
         this.$emit('result', this.value)
         this.$destroy()
       },
-      change () {
+      change() {
         this.$destroy()
       }
     }

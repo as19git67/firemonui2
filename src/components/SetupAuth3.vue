@@ -40,35 +40,41 @@
                     >
                   </a>
                 </div>
-                <p />
+                <p/>
                 <p class="body-2">
                   Schritt 2: die Authenticator App durch scannen des QR codes initialisieren, oder
                   manuell den geheimen Schlüssel <span
-                    class="secret"
-                  >{{secret}}</span> eingeben
+                  class="secret"
+                >{{secret}}</span> eingeben
                 </p>
-                <qrcode-vue :value="otpauthURL" :size="qrsize" level="H" />
-                <p />
+                <qrcode-vue :value="otpauthURL" :size="qrsize" level="H"/>
+                <p/>
                 <p class="body-2">
                   Schritt 3: dann den von der Authenticator App generierten Code eingeben
                 </p>
               </v-flex>
               <v-flex>
-                <v-text-field id="code" v-model="code" prepend-inner-icon="sim_card" name="code" type="text" autofocus
-                              mask="# # # # # #" outline
-                              label="6-stelliger Code" class="codefield" @keyup.enter="validateCode()"
+                <v-text-field id="code" v-model="code" name="code" type="text" autocomplete="off"
+                              autofocus
+                              outlined
+                              solo
+                              flat
+                              persistent-hint
+                              hint="6-stelliger Code"
+                              class="codefield display-2 justify-center"
+                              @keyup.enter="validateCode()"
                 />
               </v-flex>
             </v-layout>
           </v-container>
           <v-card-actions>
-            <v-spacer />
-            <v-spacer />
+            <v-spacer/>
+            <v-spacer/>
             <div v-if="error" class=" red--text
                   " v-text="error"
             />
-            <v-progress-circular v-if="inprogress" indeterminate color="primary" />
-            <v-spacer />
+            <v-progress-circular v-if="inprogress" indeterminate color="primary"/>
+            <v-spacer/>
             <v-btn :disabled="!code || code.length !== 6" color="primary" @click="validateCode()">
               Weiter
             </v-btn>
@@ -177,17 +183,14 @@
   }
 
   .codefield {
-    max-width: 7em;
-    font-size: 34px;
-    font-weight: 400;
-    margin-top: 20px;
-    margin-bottom: 0;
-    padding: 0;
+    max-width: 4.5em;
   }
 </style>
 
 <style>
   .codefield input {
-    max-height: unset !important;
+    margin-top: 6px;
+    margin-bottom: 3px;
+    font-family: monospace;
   }
 </style>
