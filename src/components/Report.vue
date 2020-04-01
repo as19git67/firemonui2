@@ -37,12 +37,13 @@
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-menu ref="menuStart" v-model="menuStart" :close-on-content-click="true" :nudge-right="20" lazy transition="scale-transition" offset-y full-width
+            <v-menu ref="menuStart" v-model="menuStart" :close-on-content-click="true" :nudge-right="20" lazy
+                    transition="scale-transition" offset-y full-width
                     min-width="290px"
             >
               <v-text-field slot="activator" v-model="form.startFormatted" label="Einsatzbeginn"
                             prepend-icon="mdi-timetable" readonly/>
-              <v-date-picker v-model="form.startDate" :readonly="readonly" label="Einsatzbeginn" locale="de" />
+              <v-date-picker v-model="form.startDate" :readonly="readonly" label="Einsatzbeginn" locale="de"/>
             </v-menu>
           </v-flex>
           <v-flex>
@@ -50,14 +51,6 @@
                           prepend-icon="mdi-clock-outline" :readonly="readonly"/>
           </v-flex>
           <v-flex>
-            <v-menu ref="menuEnd" v-model="menuEnd" :close-on-content-click="true"
-                    :nudge-right="20" lazy transition="scale-transition" offset-y full-width
-                    min-width="290px"
-            >
-              <v-text-field slot="activator" v-model="form.endFormatted" label="Ende (Datum)"
-                            prepend-icon="mdi-timetable" readonly/>
-              <v-date-picker v-model="form.endDate" :readonly="readonly" locale="de" />
-            </v-menu>
             <v-menu
               v-model="menu2"
               :close-on-content-click="false"
@@ -70,7 +63,7 @@
                 <v-text-field
                   v-model="form.endFormatted"
                   label="Picker without buttons"
-                  prepend-icon="event"
+                  prepend-icon="mdi-timetable"
                   readonly
                   v-on="on"
                 ></v-text-field>
@@ -116,11 +109,14 @@
                 <v-text-field v-model="mat.name" readonly/>
               </v-flex>
               <v-flex v-for="value in mat.values" :key="`${mat.id}-${value.id}`" class="material-value">
-                <v-text-field v-if="value.type==='string'" v-model.lazy="value.value" :readonly="readonly" :label="value.label" required />
-                <v-text-field v-if="value.type==='int'" v-model.lazy="value.value" :readonly="readonly" :label="value.label" :rules="integerRules"
+                <v-text-field v-if="value.type==='string'" v-model.lazy="value.value" :readonly="readonly"
+                              :label="value.label" required/>
+                <v-text-field v-if="value.type==='int'" v-model.lazy="value.value" :readonly="readonly"
+                              :label="value.label" :rules="integerRules"
                               required
                 />
-                <v-text-field v-if="value.type==='float'" v-model.lazy="value.value" :readonly="readonly" :label="value.label" :rules="floatRules"
+                <v-text-field v-if="value.type==='float'" v-model.lazy="value.value" :readonly="readonly"
+                              :label="value.label" :rules="floatRules"
                               required
                 />
                 <v-autocomplete v-if="value.type==='attendee'" v-model.lazy="value.value" :readonly="readonly"
@@ -167,7 +163,7 @@
     </v-form>
     <v-dialog v-model="materialPickerVisible" max-width="600px" scrollable :fullscreen="$vuetify.breakpoint.xsOnly">
       <template>
-        <MaterialPicker @close="materialPickerClose" />
+        <MaterialPicker @close="materialPickerClose"/>
       </template>
     </v-dialog>
     <v-snackbar :value="haveDataToSave" :top="false" :timeout="0" dark color="info">
@@ -325,7 +321,7 @@
           console.log(`materialList changed`)
           let job = this.currentJob
 
-          function isDifferentMaterial (reportMaterial, m) {
+          function isDifferentMaterial(reportMaterial, m) {
             if (reportMaterial) {
               // material type changed?
               if (reportMaterial.matId !== m.matId) {
@@ -478,7 +474,7 @@
         deep: true
       }
     },
-    beforeCreate () {
+    beforeCreate() {
       let haveSession = this.$session.exists()
       if (haveSession) {
         let accessRights = this.$session.get('accessRights')
@@ -493,7 +489,7 @@
         }
       }
     },
-    created () {
+    created() {
       this.updateData = {report: {}}
       let job = this.currentJob
       if (this.currentJob.id !== undefined) {
@@ -539,7 +535,7 @@
         this._createAttendeesSelectionList()
       }
     },
-    mounted () {
+    mounted() {
       this.dateFailure = false
       this.readonly = !this.canWrite || this.currentJob.readonly
     },
@@ -774,7 +770,7 @@
           }
         }
       }, 5000, {leading: false, trailing: true}),
-      _calculateDuration () {
+      _calculateDuration() {
         let re = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
         if (re.test(this.form.startTime) && re.test(this.form.endTime)) {
           let s = moment(this.form.startDate + ' ' + this.form.startTime)
@@ -790,17 +786,17 @@
           return undefined
         }
       },
-      showMaterialPicker () {
+      showMaterialPicker() {
         this.materialPickerVisible = true
       },
-      materialPickerClose (payload) {
+      materialPickerClose(payload) {
         this.materialPickerVisible = false
         for (let i = 0; i < payload.length; i++) {
           let pickedMaterialType = payload[i]
           this.addMaterial(pickedMaterialType)
         }
       },
-      addMaterial (materialType) {
+      addMaterial(materialType) {
         let matSortedById = _.sortBy(this.materialList, 'id')
         let matWithMaxId = _.last(matSortedById)
         let m = {
@@ -813,7 +809,7 @@
         }
         this.materialList.push(m)
       },
-      removeMaterial (id) {
+      removeMaterial(id) {
         let removeIndex = -1
         for (let i = 0; i < this.materialList.length; i++) {
           if (this.materialList[i].id === id) {
@@ -825,10 +821,10 @@
           this.materialList.splice(removeIndex, 1)
         }
       },
-      getMaterialName (item) {
+      getMaterialName(item) {
         return item.name
       },
-      getMaterialId (item) {
+      getMaterialId(item) {
         return item.id
       }
     }
