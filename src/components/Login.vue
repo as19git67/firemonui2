@@ -144,8 +144,9 @@
 
 <style>
   .codefield input {
-    margin-top: 6px;
-    margin-bottom: 3px;
     font-family: monospace;
+  }
+  .v-input.codefield input {
+    max-height: unset;
   }
 </style>
