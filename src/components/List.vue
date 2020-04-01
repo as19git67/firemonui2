@@ -17,7 +17,7 @@
                     :items="jobsList"
                     class="elevation-1"
                     hide-default-footer
-                    :disable-pagination="true" >
+                    :disable-pagination="true">
         <template v-slot:item.start="{ item }">
           {{ item.start ? item.start.format('L LTS') : '' }}
         </template>
@@ -347,8 +347,13 @@
         this.loading = false
         let errorMessage = ex.message
         if (ex.response) {
+          if (ex.response.data && ex.response.data.error) {
+            errorMessage = ex.response.data.error
+          }
           if (ex.response.status === 401) {
-            this.$router.push('/login')
+            this.errorSnackbarText = `${snackText}: ${errorMessage}`
+            this.errorSnackbar = true
+//            this.$router.push('/login')
           } else {
             if (ex.response.data && ex.response.data.error) {
               errorMessage = ex.response.data.error
