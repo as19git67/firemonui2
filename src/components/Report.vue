@@ -37,22 +37,8 @@
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-menu ref="menuStart" v-model="menuStart" :close-on-content-click="true" :nudge-right="20" lazy
-                    transition="scale-transition" offset-y full-width
-                    min-width="290px"
-            >
-              <v-text-field slot="activator" v-model="form.startFormatted" label="Einsatzbeginn"
-                            prepend-icon="mdi-timetable" readonly/>
-              <v-date-picker v-model="form.startDate" :readonly="readonly" label="Einsatzbeginn" locale="de"/>
-            </v-menu>
-          </v-flex>
-          <v-flex>
-            <v-text-field v-model="form.startTime" label="Einsatzbeginn" :rules="timeRules"
-                          prepend-icon="mdi-clock-outline" :readonly="readonly"/>
-          </v-flex>
-          <v-flex>
             <v-menu
-              v-model="menu2"
+              v-model="menuStart"
               :close-on-content-click="false"
               :nudge-right="40"
               transition="scale-transition"
@@ -61,14 +47,39 @@
             >
               <template v-slot:activator="{ on }">
                 <v-text-field
-                  v-model="form.endFormatted"
-                  label="Picker without buttons"
+                  v-model="form.startFormattedLocalized"
+                  label="Einsatzbeginn"
                   prepend-icon="mdi-timetable"
                   readonly
                   v-on="on"
-                ></v-text-field>
+                />
               </template>
-              <v-date-picker v-model="form.endFormatted" @input="menu2 = false"></v-date-picker>
+              <v-date-picker v-model="form.endFormatted" locale="de" @input="menuStart = false"/>
+            </v-menu>
+          </v-flex>
+          <v-flex>
+            <v-text-field v-model="form.startTime" label="Einsatzbeginn" :rules="timeRules"
+                          prepend-icon="mdi-clock-outline" :readonly="readonly"/>
+          </v-flex>
+          <v-flex>
+            <v-menu
+              v-model="menuEnd"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              min-width="290px"
+            >
+              <template v-slot:activator="{ on }">
+                <v-text-field
+                  v-model="form.endFormattedLocalized"
+                  label="Einsatzende"
+                  prepend-icon="mdi-timetable"
+                  readonly
+                  v-on="on"
+                />
+              </template>
+              <v-date-picker v-model="form.endFormatted" locale="de" @input="menuEnd = false"/>
             </v-menu>
           </v-flex>
           <v-flex>
@@ -189,7 +200,7 @@
     components: {MaterialPicker},
     data: function () {
       if (!this.form) {
-        this.jobKeys = ['title', 'startDate', 'startTime', 'startFormatted', 'endDate', 'endTime', 'endFormatted']
+        this.jobKeys = ['title', 'startDate', 'startTime', 'startFormatted', 'startFormattedLocalized', 'endDate', 'endTime', 'endFormatted', 'endFormattedLocalized']
         this.jobReportKeys = ['director', 'writer', 'duration', 'incident', 'location', 'text', 'material', 'others', 'rescued', 'recovered']
         this.form = {}
         const self = this
@@ -346,8 +357,8 @@
 
             var removeIndexes = []
             for (var i = 0; this.currentJob.report.materialList && i < this.currentJob.report.materialList.length; i++) {
-              var repMat = this.currentJob.report.materialList[i]
-              var formMaterial = _.find(this.materialList, mat => {
+              const repMat = this.currentJob.report.materialList[i]
+              const formMaterial = _.find(this.materialList, mat => {
                 return mat.id === repMat.id
               })
               // if material not found in materialList, it was removed => remove it from report too
@@ -683,12 +694,21 @@
       _setFormDateFormatted: function (date, dateKey) {
         let newValue
         if (moment.isMoment(date)) {
-          newValue = date.format('L')
+          newValue = date.toISOString().substr(0, 10)
         } else {
           // newValue = moment().format('L')
           newValue = ''
         }
         this._setFormFieldIfChanged(newValue, dateKey + 'Formatted')
+      },
+      _setFormDateLocalized: function (date, dateKey) {
+        let newValue
+        if (moment.isMoment(date)) {
+          newValue = date.format('L')
+        } else {
+          newValue = ''
+        }
+        this._setFormFieldIfChanged(newValue, dateKey + 'FormattedLocalized')
       },
       _setFormTime: function (time, dateKey) {
         let newValue
@@ -704,21 +724,29 @@
         // check for Date, Formatted or Time in the key. If found, make a form-model with this name and
         // a specific to the key formatted date or time text
         let iDate = formFieldName.indexOf('Date')
+        let dateKey, date, time;
         if (iDate > 0) {
-          const dateKey = formFieldName.substr(0, iDate)
-          let date = sourceObj[dateKey]
+          dateKey = formFieldName.substr(0, iDate)
+          date = sourceObj[dateKey]
           this._setFormDate(date, dateKey)
         } else {
           let iFormatted = formFieldName.indexOf('Formatted')
           if (iFormatted > 0) {
-            const dateKey = formFieldName.substr(0, iFormatted)
-            let date = sourceObj[dateKey]
-            this._setFormDateFormatted(date, dateKey)
+            let iLocalized = formFieldName.indexOf('FormattedLocalized')
+            if (iLocalized > 0) {
+              dateKey = formFieldName.substr(0, iLocalized)
+              date = sourceObj[dateKey]
+              this._setFormDateLocalized(date, dateKey)
+            } else {
+              dateKey = formFieldName.substr(0, iFormatted)
+              date = sourceObj[dateKey]
+              this._setFormDateFormatted(date, dateKey)
+            }
           } else {
             let iTime = formFieldName.indexOf('Time')
             if (iTime > 0) {
-              const dateKey = formFieldName.substr(0, iTime)
-              let time = sourceObj[dateKey]
+              dateKey = formFieldName.substr(0, iTime)
+              time = sourceObj[dateKey]
               this._setFormTime(time, dateKey)
             } else {
               this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
