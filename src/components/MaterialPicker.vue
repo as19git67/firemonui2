@@ -11,7 +11,7 @@
             <v-btn color="info" @click="finish">
               Übernehmen
             </v-btn>
-            <v-btn color="secondary" @click="cancel">
+            <v-btn class="ml-3" color="secondary" @click="cancel">
               Abbrechen
             </v-btn>
           </v-toolbar>
@@ -20,7 +20,7 @@
               v-model="filter"
               placeholder="zum Suchen Begriff eingeben"
               hide-details
-              prepend-icon="search"
+              prepend-icon="mdi-table-search"
               single-line
             />
           </v-card-text>

@@ -54,7 +54,7 @@
                   v-on="on"
                 />
               </template>
-              <v-date-picker v-model="form.endFormatted" locale="de" @input="menuStart = false"/>
+              <v-date-picker v-model="form.startDate" locale="de" @input="menuStart = false"/>
             </v-menu>
           </v-flex>
           <v-flex>
@@ -79,7 +79,7 @@
                   v-on="on"
                 />
               </template>
-              <v-date-picker v-model="form.endFormatted" locale="de" @input="menuEnd = false"/>
+              <v-date-picker v-model="form.endDate" locale="de" @input="menuEnd = false"/>
             </v-menu>
           </v-flex>
           <v-flex>
@@ -200,7 +200,7 @@
     components: {MaterialPicker},
     data: function () {
       if (!this.form) {
-        this.jobKeys = ['title', 'startDate', 'startTime', 'startFormatted', 'startFormattedLocalized', 'endDate', 'endTime', 'endFormatted', 'endFormattedLocalized']
+        this.jobKeys = ['title', 'startDate', 'startTime', 'startFormattedLocalized', 'endDate', 'endTime', 'endFormattedLocalized']
         this.jobReportKeys = ['director', 'writer', 'duration', 'incident', 'location', 'text', 'material', 'others', 'rescued', 'recovered']
         this.form = {}
         const self = this
@@ -620,7 +620,7 @@
             // update date field (picker and text field) in form
             // this._setFormDate(newDate, dateKey)
             console.log(`updating date ${newDate.format()} datekey ${dateKey}`)
-            this._setFormDateFormatted(newDate, dateKey)
+            this._setFormDateLocalized(newDate, dateKey)
             const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
