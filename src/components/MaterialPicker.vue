@@ -6,7 +6,7 @@
           <v-toolbar dark color="primary">
             <v-toolbar-title>Material auswählen</v-toolbar-title>
 
-            <v-spacer />
+            <v-spacer/>
 
             <v-btn color="info" @click="finish">
               Übernehmen
@@ -24,25 +24,26 @@
               single-line
             />
           </v-card-text>
-          <v-divider />
-          <v-list
-            two-line
-            class="theList"
-          >
-            <template v-for="(item, index) in filteredMaterialTypes" v-slot:default="{ active, toggle }">
-              <v-list-item-avatar :key="item.id" avatar ripple>
-                <v-list-item-action>
-                  <v-checkbox v-model="selected[item.id]" color="primary" />
-                </v-list-item-action>
-                <v-list-item-content>
-                  <v-list-item-title>{{ item.name }}</v-list-item-title>
-                  <v-list-item-subtitle class="text--primary">
-                    {{ item.notes }}
-                  </v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item-avatar>
-              <v-divider v-if="index + 1 < filteredMaterialTypes.length" :key="index" />
-            </template>
+          <v-divider/>
+          <v-list two-line class="theList">
+            <v-list-item-group>
+              <template v-for="(item, index) in filteredMaterialTypes">
+                <v-list-item :key="item.id">
+                  <template v-slot:default="{ active, toggle }">
+                    <v-list-item-action>
+                      <v-checkbox v-model="selected[item.id]" color="primary"/>
+                    </v-list-item-action>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ item.name }}</v-list-item-title>
+                      <v-list-item-subtitle class="text--primary">
+                        {{ item.notes }}
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+                  </template>
+                </v-list-item>
+                <v-divider v-if="index + 1 < filteredMaterialTypes.length" :key="index"/>
+              </template>
+            </v-list-item-group>
           </v-list>
         </v-card>
       </v-flex>
@@ -68,7 +69,7 @@
         materialTypes: 'materialTypes',
         filteredMaterialTypes: 'filteredMaterialTypes'
       }),
-      filteredMaterialTypes () {
+      filteredMaterialTypes() {
         return this.materialTypes ? _.map(_.filter(this.materialTypes, mt => {
           return this.filter.trim().length === 0 ||
             (mt.name && mt.name.trim().toLowerCase().indexOf(this.filter.trim().toLowerCase()) > -1) ||
