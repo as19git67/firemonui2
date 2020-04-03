@@ -54,7 +54,7 @@
                   v-on="on"
                 />
               </template>
-              <v-date-picker v-model="form.startDate" locale="de" @input="menuStart = false"/>
+              <v-date-picker v-model="form.startDate" :readonly="readonly" locale="de" @input="menuStart = false"/>
             </v-menu>
           </v-flex>
           <v-flex>
@@ -79,7 +79,7 @@
                   v-on="on"
                 />
               </template>
-              <v-date-picker v-model="form.endDate" locale="de" @input="menuEnd = false"/>
+              <v-date-picker v-model="form.endDate" :readonly="readonly" locale="de" @input="menuEnd = false"/>
             </v-menu>
           </v-flex>
           <v-flex>

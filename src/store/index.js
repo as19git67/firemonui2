@@ -413,16 +413,23 @@ export default new Vuex.Store({
     },
     storeUpdateJob: function (state, data) {
       // assign the new values
+      let job = state.jobs[data.id]
       if (data.images) {
-        state.jobs[data.id].images = data.images
-        state.jobs[data.id].start = data.start
+        job.images = data.images
+        job.start = data.start
       } else {
-        state.jobs[data.id].start = data.start
-        _.assignIn(state.jobs[data.id], data)
-        if (!state.jobs[data.id].encrypted) {
-          delete state.jobs[data.id].encryptedData
-          delete state.jobs[data.id].encryptedRandomBase64
+        job.start = data.start
+        _.assignIn(job, data)
+        if (!job.encrypted) {
+          delete job.encryptedData
+          delete job.encryptedRandomBase64
         }
+      }
+      if (!moment.isMoment(job.start)) {
+        job.start = moment(job.start);
+      }
+      if (!moment.isMoment(job.end)) {
+        job.end = moment(job.end);
       }
       _updateHaveActiveJob(state)
     },
