@@ -15,6 +15,8 @@
       <v-data-table v-resize="onResize"
                     :headers="headers"
                     :items="jobsList"
+                    :options="tableOptions"
+                    :custom-sort="customSort"
                     class="elevation-1"
                     hide-default-footer
                     :disable-pagination="true">
@@ -76,6 +78,7 @@
 <script>
   import Toolbar from '@/components/Toolbar.vue'
   import _ from 'lodash'
+  import moment from 'moment'
   import {mapActions, mapMutations, mapGetters} from 'vuex'
 
   export default {
@@ -88,10 +91,10 @@
         canDelete: this.canDelete,
         errorSnackbarText: '',
         errorSnackbar: false,
-        pagination: {
-          sortBy: 'start',
-          descending: true,
-          rowsPerPage: -1
+        tableOptions: {
+          itemsPerPage: -1,
+          sortBy: ['start'],
+          sortDesc: [true],
         },
         headers: this.headers
       }
@@ -140,6 +143,54 @@
         'decryptJobById', // map `this.decryptJobById()` to `this.$store.dispatch('decryptJobById')`
         'tempDecryptJobById' // map `this.tempDecryptJobById()` to `this.$store.dispatch('tempDecryptJobById')`
       ]),
+      customSort(items, index, isDesc) {
+        if (index.length === 0) {
+          return items;
+        }
+        const i = index [0]
+        const desc = isDesc[0];
+        items.sort((a, b) => {
+          if (i === 'start' || i === 'end') {
+            const aDate = a[i]
+            const bDate = a[i]
+            if (!moment.isMoment(aDate)) {
+              return desc ? -1 : 1
+            }
+            if (!moment.isMoment(aDate) && !moment.isMoment(bDate)) {
+              return desc ? 1 : -1
+            }
+            if (desc) {
+              return aDate.isAfter(bDate) ? -1 : 1
+            } else {
+              return aDate.isBefore(bDate) ? -1 : 1
+            }
+
+          } else {
+            const aVal = a[i]
+            const bVal = b[i]
+            if (aVal === undefined) {
+              return desc ? -1 : 1
+            }
+            if (bVal === undefined) {
+              return desc ? 1 : -1
+            }
+            if (_.isString(aVal) && _.isString(bVal)) {
+              if (!desc) {
+                return aVal.localeCompare(bVal)
+              } else {
+                return bVal.localeCompare(aVal)
+              }
+            } else {
+              if (!desc) {
+                return aVal < bVal ? -1 : 1
+              } else {
+                return bVal < aVal ? -1 : 1
+              }
+            }
+          }
+        });
+        return items;
+      },
       loadAllJobs() {
         if (this.loading) {
           return

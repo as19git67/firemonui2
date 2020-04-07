@@ -62,12 +62,16 @@ Vue.filter('toDate', function (value) {
   }
 })
 
-let wsUrl
+let wsUrl, wsProtocol
 if (originUrl.protocol === 'http:') {
-  wsUrl = `ws://${originUrl.host}/websocket`
-  // wsUrl = 'ws://localhost:5005'
+  wsProtocol = 'ws';
 } else {
-  wsUrl = `wss://${originUrl.host}${originUrl.pathname}`
+  wsProtocol = 'wss';
+}
+if (process.env.NODE_ENV === 'development') {
+  wsUrl = `${wsProtocol}://localhost:5005`
+} else {
+  wsUrl = `${wsProtocol}://${originUrl.host}${originUrl.pathname}`
 }
 
 Vue.use(VueNativeSock, wsUrl, {
@@ -76,7 +80,7 @@ Vue.use(VueNativeSock, wsUrl, {
   reconnectionDelay: 5000
 })
 
-Vue.use(VuetifyConfirm, { vuetify })
+Vue.use(VuetifyConfirm, {vuetify})
 
 function InstallPassphrase(Vue, options = {}) {
   const property = '$askPassphrase'
