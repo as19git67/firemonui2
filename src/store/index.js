@@ -88,6 +88,12 @@ function _addAJob (state, job) {
     if (_.includes(reportAttributesExceptions, key)) {
       return false // don't check this attribute for any value
     }
+    if (key === 'materialList') {
+      const matList = job.report[key]
+      if (!matList || !matList.length) {
+        return false; // gnore empty material list
+      }
+    }
     const attribute = job.report[key]
     if (_.isString(attribute)) {
       const num = parseFloat(attribute)

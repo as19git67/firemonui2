@@ -52,6 +52,9 @@
 
   export default {
     name: 'ManageAccount',
+    components: {
+      Toolbar
+    },
     data () {
       this.canChangeEmail = false
       this.btnTitleGenerateKey = 'Neues Schlüsselpaar erzeugen'
@@ -159,9 +162,6 @@
           }
         }
       }
-    },
-    components: {
-      Toolbar
     }
   }
 </script>

@@ -17,10 +17,9 @@
       />
     </v-toolbar>
     <v-card>
-      <v-card-text
-        v-if="Boolean(message)"
-        v-html="message"
-      />
+      <v-card-text v-if="Boolean(message)">
+        {{ message }}
+      </v-card-text>
       <v-card-text>
         <v-form
           :id="idForm"

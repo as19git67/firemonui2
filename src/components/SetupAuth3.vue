@@ -44,8 +44,8 @@
                 <p class="body-2">
                   Schritt 2: die Authenticator App durch scannen des QR codes initialisieren, oder
                   manuell den geheimen Schlüssel <span
-                  class="secret"
-                >{{secret}}</span> eingeben
+                    class="secret"
+                  >{{secret}}</span> eingeben
                 </p>
                 <qrcode-vue :value="otpauthURL" :size="qrsize" level="H"/>
                 <p/>

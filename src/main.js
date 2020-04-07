@@ -64,7 +64,8 @@ Vue.filter('toDate', function (value) {
 
 let wsUrl
 if (originUrl.protocol === 'http:') {
-  wsUrl = `ws://${originUrl.host}${originUrl.pathname}`
+  wsUrl = `ws://${originUrl.host}/websocket`
+  // wsUrl = 'ws://localhost:5005'
 } else {
   wsUrl = `wss://${originUrl.host}${originUrl.pathname}`
 }
@@ -129,7 +130,7 @@ function InstallDialogForm(Vue, options = {}) {
         propsData: Object.assign({}, Vue.prototype.$modalDialogForm.options, options),
         destroyed: () => {
           container.removeChild(cmp.$el)
-          resolve(cmp.value)
+          resolve(cmp.formData)
         }
       }))
       container.appendChild(cmp.$mount().$el)

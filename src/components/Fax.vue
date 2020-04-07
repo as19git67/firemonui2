@@ -1,10 +1,9 @@
 <template>
   <div v-if="image">
-    <img :src="this.image" alt="FAX">
+    <img :src="image" alt="FAX">
   </div>
   <div v-else>
-    <h1>Einsatz</h1>
-    <h2>Alarmzeit: {{start | toDate}}</h2>
+    <h2>Start: {{start | toDate}}</h2>
     <h2>Kein Alarmfax verfügbar</h2>
   </div>
 </template>
@@ -14,6 +13,12 @@
 
   export default {
     name: 'Fax',
+    data () {
+      return {
+        image: this.image,
+        start: this.start
+      }
+    },
     computed: {
       ...mapGetters({currentJob: 'currentJob'})
     },
@@ -35,12 +40,6 @@
             this.image = this.currentJob.images.fax
           }
         }
-      }
-    },
-    data () {
-      return {
-        image: this.image,
-        start: this.start
       }
     }
   }

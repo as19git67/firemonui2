@@ -644,30 +644,32 @@
           oldDateTime = job[timeKey]
         }
 
-        let newDateTime = oldDateTime
-        let newTime = moment(value, 'HH:mm')
-        if (newTime.isValid()) {
-          newDateTime.set('hour', newTime.hour())
-          newDateTime.set('minute', newTime.minute())
-          newDateTime.set('second', 0)
-        }
-        if (!newDateTime.isSame(oldDateTime)) {
-          if (moment.isMoment(oldDateTime) && moment.isMoment(newDateTime)) {
-            // console.log(`${key} changed from ${oldDateTime.format()} to "${newDateTime.format()}"`)
-          } else {
-            if (moment.isMoment(newDateTime)) {
-              // console.log(`${key} changed from undefined to "${newDateTime.format()}"`)
+        if (moment.isMoment(oldDateTime)) {
+          let newDateTime = oldDateTime
+          let newTime = moment(value, 'HH:mm')
+          if (newTime.isValid()) {
+            newDateTime.set('hour', newTime.hour())
+            newDateTime.set('minute', newTime.minute())
+            newDateTime.set('second', 0)
+          }
+          if (!newDateTime.isSame(oldDateTime)) {
+            if (moment.isMoment(oldDateTime) && moment.isMoment(newDateTime)) {
+              // console.log(`${key} changed from ${oldDateTime.format()} to "${newDateTime.format()}"`)
+            } else {
+              if (moment.isMoment(newDateTime)) {
+                // console.log(`${key} changed from undefined to "${newDateTime.format()}"`)
+              }
             }
+            const duration = this._calculateDuration()
+            if (duration !== undefined) {
+              this.updateData.report.duration = duration
+              this.form.duration = duration.toString()
+              // update at server
+            }
+            this.updateData[timeKey] = newDateTime
+            this.setHaveDataToSave(true)
+            this._throttledSaveJobData()
           }
-          const duration = this._calculateDuration()
-          if (duration !== undefined) {
-            this.updateData.report.duration = duration
-            this.form.duration = duration.toString()
-            // update at server
-          }
-          this.updateData[timeKey] = newDateTime
-          this.setHaveDataToSave(true)
-          this._throttledSaveJobData()
         }
       },
       _createAttendeesSelectionList: function () {

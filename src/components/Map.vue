@@ -17,21 +17,6 @@
       LTileLayer,
       LMarker
     },
-    computed: {
-      ...mapGetters({currentJob: 'currentJob'})
-    },
-    created () {
-      let job = this.currentJob
-      if (job) {
-        if (job.latitude && job.longitude) {
-          this.latitude = job.latitude
-          this.longitude = job.longitude
-
-          this.center = L.latLng(this.latitude, this.longitude)
-          this.marker = L.latLng(this.latitude, this.longitude)
-        }
-      }
-    },
     data () {
       if (!this.latitude || !this.longitude) {
         // initialize with some coordinate
@@ -46,6 +31,21 @@
         url: 'https://{s}.tile.osm.org/{z}/{x}/{y}.png',
         attribution: 'Einsatzort',
         marker: this.marker
+      }
+    },
+    computed: {
+      ...mapGetters({currentJob: 'currentJob'})
+    },
+    created () {
+      let job = this.currentJob
+      if (job) {
+        if (job.latitude && job.longitude) {
+          this.latitude = job.latitude
+          this.longitude = job.longitude
+
+          this.center = L.latLng(this.latitude, this.longitude)
+          this.marker = L.latLng(this.latitude, this.longitude)
+        }
       }
     }
   }
