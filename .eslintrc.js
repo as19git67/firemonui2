@@ -24,7 +24,8 @@ module.exports = {
     "vue/max-attributes-per-line": "off",
     "vue/mustache-interpolation-spacing": "off",
     // we should always disable console logs and debugging in production
-    "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
+//    "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
+    "no-console": "off", // allow console.log
     "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off"
   }
 };

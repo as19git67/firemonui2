@@ -1,14 +1,14 @@
 <template>
   <div>
     <template>
-      <Toolbar />
+      <Toolbar/>
     </template>
     <v-form>
       <v-container fluid>
         <v-card>
-          <v-toolbar dark color="primary">
-            <v-toolbar-title>Benutzerkonto von <span class="username">{{username}}</span> verwalten:</v-toolbar-title>
-          </v-toolbar>
+          <v-card-title dark color="info">
+            Benutzerkonto von <span class="username">{{username}}</span> verwalten:
+          </v-card-title>
           <v-layout row>
             <v-flex xs12 sm9 md7 lg5>
               <v-card-text>Email Adresse: <span class="email">{{email}}</span></v-card-text>
@@ -21,15 +21,17 @@
           </v-layout>
           <v-layout v-if="hasFullRight" row>
             <v-flex xs12 sm9 md7 lg5>
-              <v-card-text>Geheimer Schlüssel zum Schützen der Daten: <span class="keystate">{{keystate}}</span></v-card-text>
+              <v-card-text>
+                Geheimer Schlüssel zum Schützen der Daten: <span class="keystate">{{keystate}}</span>
+              </v-card-text>
+              <v-card-text>{{btnTitleGenerateKey}}</v-card-text>
             </v-flex>
             <v-flex xs12 sm3 md5 lg7>
-              <v-tooltip bottom>
-                <v-btn slot="activator" :disabled="generateKeyDisabled" @click="generateKeys()">
+              <v-card-text>
+                <v-btn color="primary" :disabled="generateKeyDisabled" @click="generateKeys()">
                   Neu erzeugen
                 </v-btn>
-                <span>{{btnTitleGenerateKey}}</span>
-              </v-tooltip>
+              </v-card-text>
             </v-flex>
           </v-layout>
         </v-card>
@@ -55,7 +57,7 @@
     components: {
       Toolbar
     },
-    data () {
+    data() {
       this.canChangeEmail = false
       this.btnTitleGenerateKey = 'Neues Schlüsselpaar erzeugen'
       return {
@@ -69,7 +71,7 @@
         btnTitleGenerateKey: this.btnTitleGenerateKey
       }
     },
-    beforeCreate () {
+    beforeCreate() {
       let haveSession = this.$session.exists()
       if (haveSession) {
         let accessRights = this.$session.get('accessRights')
@@ -85,10 +87,10 @@
         }
       }
     },
-    created () {
+    created() {
       this.generateKeyDisabled = true
     },
-    async mounted () {
+    async mounted() {
       this.email = ''
       this.keystate = ''
       const options = {
@@ -111,15 +113,20 @@
       ...mapActions([
         'getDetailsForUser' // map `this.getDetailsForUser()` to `this.$store.dispatch('getDetailsForUser')`
       ]),
-      changeEmail () {
+      changeEmail() {
         this.$router.push('/changeEmail')
       },
-      async generateKeys () {
+      async generateKeys() {
         if (!this.loadStatus && !this.saveStatus) {
           let password = await
             this.$askPassphrase(
               `Zur Verschlüsselung der Einsatzdaten wird ein geheimer Dechiffrierschlüssel erzeugt. Der Dechiffrierschlüssel muss mit einem Passwort (passphrase) geschützt werden.`,
-              {title: 'Dechiffrierschlüssel erzeugen', idForm: 'decryptionKeyPassphrase', label: 'Passwort', btnTextOk: 'Weiter'})
+              {
+                title: 'Dechiffrierschlüssel erzeugen',
+                idForm: 'decryptionKeyPassphrase',
+                label: 'Passwort',
+                btnTextOk: 'Weiter'
+              })
           if (!password) {
             return
           }
@@ -127,7 +134,12 @@
           let message = 'Passwort wiederholen:'
           do {
             passwordConfirmation = await this.$askPassphrase(message,
-              {title: 'Dechiffrierschlüssel erzeugen', idForm: 'decryptionKeyPassphrase', label: 'Passwort', btnTextOk: 'Speichern'})
+              {
+                title: 'Dechiffrierschlüssel erzeugen',
+                idForm: 'decryptionKeyPassphrase',
+                label: 'Passwort',
+                btnTextOk: 'Speichern'
+              })
             if (password !== passwordConfirmation) {
               message = 'Passwörter stimmen nicht überein. Passwort wiederholen:'
             }

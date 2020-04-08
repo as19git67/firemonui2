@@ -145,48 +145,61 @@
       ]),
       customSort(items, index, isDesc) {
         if (index.length === 0) {
-          return items;
+          // default is start column, descending
+          index.push('start')
+          isDesc.push(true)
         }
         const i = index [0]
         const desc = isDesc[0];
         items.sort((a, b) => {
-          if (i === 'start' || i === 'end') {
-            const aDate = a[i]
-            const bDate = a[i]
-            if (!moment.isMoment(aDate)) {
-              return desc ? -1 : 1
-            }
-            if (!moment.isMoment(aDate) && !moment.isMoment(bDate)) {
-              return desc ? 1 : -1
-            }
-            if (desc) {
-              return aDate.isAfter(bDate) ? -1 : 1
-            } else {
-              return aDate.isBefore(bDate) ? -1 : 1
-            }
-
-          } else {
-            const aVal = a[i]
-            const bVal = b[i]
-            if (aVal === undefined) {
-              return desc ? -1 : 1
-            }
-            if (bVal === undefined) {
-              return desc ? 1 : -1
-            }
-            if (_.isString(aVal) && _.isString(bVal)) {
-              if (!desc) {
-                return aVal.localeCompare(bVal)
-              } else {
-                return bVal.localeCompare(aVal)
+          const aVal = a[i]
+          const bVal = b[i]
+          if (aVal === undefined) {
+            return desc ? -1 : 1
+          }
+          if (bVal === undefined) {
+            return desc ? 1 : -1
+          }
+          switch (i) {
+            case 'start':
+            case 'end':
+              if (!moment.isMoment(aVal) && !moment.isMoment(bVal)) {
+                return 0
               }
-            } else {
+              if (!moment.isMoment(aVal) && moment.isMoment(bVal)) {
+                return desc ? 1 : -1
+              }
+              if (moment.isMoment(aVal) && !moment.isMoment(bVal)) {
+                return desc ? -1 : 1
+              }
+              if (desc) {
+                return aVal.isAfter(bVal) ? -1 : 1
+              } else {
+                return aVal.isBefore(bVal) ? -1 : 1
+              }
+            case 'title':
+            case 'keyword':
+            case 'catchword':
+              if (!_.isString(aVal) && !_.isString(bVal)) {
+                return 0
+              }
+              if (!_.isString(aVal)) {
+                return desc ? 1 : -1
+              }
+              if (!_.isString(bVal)) {
+                return desc ? 1 : -1
+              }
+              if (!desc) {
+                return aVal.localeCompare(bVal, 'de', {sensitivity: 'base'})
+              } else {
+                return bVal.localeCompare(aVal, 'de', {sensitivity: 'base'})
+              }
+            default:
               if (!desc) {
                 return aVal < bVal ? -1 : 1
               } else {
                 return bVal < aVal ? -1 : 1
               }
-            }
           }
         });
         return items;

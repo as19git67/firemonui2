@@ -294,7 +294,7 @@ function _setStaff (state, persons) {
 
 async function _requestDataFromServer (commit, apiPath, mutationFunction, options) {
   const self = this
-  const session = options.$session
+  let session = options.$session
   const username = session.get('username')
   let at = session.get('accessToken') + '.' + btoa(username)
   let config = {headers: {'Authorization': 'bearer ' + at}}

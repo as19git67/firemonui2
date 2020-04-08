@@ -107,17 +107,43 @@
                       label="Andere Wehren, Polizei, Rettungsdienst"
                       required
         />
+        <v-layout>
+          <v-flex>
+            <v-text-field v-model.lazy="form.rescued" :readonly="readonly" prepend-icon="mdi-account-heart-outline"
+                          :rules="numberRules"
+                          label="Anzahl gerettete Personen"
+            />
+          </v-flex>
+          <v-flex>
+            <v-text-field v-model.lazy="form.recovered" :readonly="readonly" prepend-icon="mdi-ghost"
+                          :rules="numberRules"
+                          label="Anzahl geborgene Personen"
+            />
+          </v-flex>
+        </v-layout>
         <v-textarea v-model.lazy="form.text" :readonly="readonly" label="Einsatzbeschreibung"
                     prepend-icon="mdi-note-text" required/>
-        <v-icon>mdi-fire-truck</v-icon>
-        <h3 class="materialListTitle">
-          Eingesetztes Material (Fahrzeuge, etc.):
-        </h3>
+        <v-flex>
+          <v-icon>mdi-fire-truck</v-icon>
+          <v-label>
+            Eingesetztes Material (Fahrzeuge, etc.):
+          </v-label>
+          <v-tooltip v-if="!readonly" top>
+            <template v-slot:activator="{ on }">
+              <v-btn icon :disabled="readonly" @click="showMaterialPicker" v-on="on">
+                <v-icon title="weitere Fahrzeuge oder Geräte hinzufügen">
+                  mdi-playlist-plus
+                </v-icon>
+              </v-btn>
+            </template>
+            <span>Fahrzeuge und Geräte hinzufügen</span>
+          </v-tooltip>
+        </v-flex>
         <v-layout class="material-list column">
           <v-container fluid>
             <v-layout v-for="mat in materialList" :key="mat.id" row>
               <v-flex xs3>
-                <v-text-field v-model="mat.name" readonly/>
+                <v-text-field v-model="mat.name" readonly prepend-icon="mdi-tools"/>
               </v-flex>
               <v-flex v-for="value in mat.values" :key="`${mat.id}-${value.id}`" class="material-value">
                 <v-text-field v-if="value.type==='string'" v-model.lazy="value.value" :readonly="readonly"
@@ -136,7 +162,7 @@
                                 prepend-icon="mdi-account" return-object
                 />
               </v-flex>
-              <v-flex v-if="!readonly" align-self-center="true" xs1>
+              <v-flex v-if="!readonly" align-self-center="true">
                 <v-btn icon :disabled="readonly" @click="removeMaterial(mat.id)">
                   <v-icon title="Material löschen">
                     mdi-playlist-minus
@@ -144,31 +170,7 @@
                 </v-btn>
               </v-flex>
             </v-layout>
-            <v-layout v-if="!readonly" row class="ml-5">
-              <v-flex xs11>
-                <v-label>Fahrzeuge und Geräte hinzufügen:</v-label>
-                <v-btn icon :disabled="readonly" @click="showMaterialPicker">
-                  <v-icon title="weitere Fahrzeuge oder Geräte hinzufügen">
-                    mdi-playlist-plus
-                  </v-icon>
-                </v-btn>
-              </v-flex>
-            </v-layout>
           </v-container>
-        </v-layout>
-        <v-layout>
-          <v-flex>
-            <v-text-field v-model.lazy="form.rescued" :readonly="readonly" prepend-icon="mdi-account-heart-outline"
-                          :rules="numberRules"
-                          label="Anzahl gerettete Personen"
-            />
-          </v-flex>
-          <v-flex>
-            <v-text-field v-model.lazy="form.recovered" :readonly="readonly" prepend-icon="mdi-ghost"
-                          :rules="numberRules"
-                          label="Anzahl geborgene Personen"
-            />
-          </v-flex>
         </v-layout>
       </v-container>
     </v-form>
