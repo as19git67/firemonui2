@@ -1,9 +1,10 @@
 <template>
   <div class="alarm-content">
     <template>
-      <Toolbar />
+      <Toolbar/>
     </template>
-    <v-tabs v-if="$vuetify.breakpoint.mdAndDown" v-model="active" dark color="info" slider-color="yellow" class="mytabs">
+    <v-tabs v-if="$vuetify.breakpoint.mdAndDown" v-model="active" background-color="yellow" slider-color="accent"
+            class="mytabs">
       <v-tab :key="0" :disabled="haveDataToSave" ripple @click="resize">
         Einsatz
       </v-tab>
@@ -18,26 +19,27 @@
       </v-tab>
       <v-tab-item :key="0" class="tabArea faxArea">
         <template>
-          <Fax />
+          <Fax/>
         </template>
       </v-tab-item>
       <v-tab-item :key="1" class="tabArea mapArea">
         <template>
-          <Map />
+          <Map/>
         </template>
       </v-tab-item>
       <v-tab-item :key="3" class="tabArea">
         <template>
-          <Attendees />
+          <Attendees/>
         </template>
       </v-tab-item>
       <v-tab-item :key="4" class="tabArea">
         <template>
-          <Report />
+          <Report/>
         </template>
       </v-tab-item>
     </v-tabs>
-    <v-tabs v-if="$vuetify.breakpoint.lgAndUp" v-model="active" dark color="info" slider-color="yellow" class="mytabs">
+    <v-tabs v-if="$vuetify.breakpoint.lgAndUp" v-model="active" background-color="yellow" slider-color="accent"
+            class="mytabs">
       <v-tab :key="5" :disabled="haveDataToSave" ripple @click="resize">
         Einsatz
       </v-tab>
@@ -52,14 +54,14 @@
           <div class="tabArea faxArea">
             <div class="full-height">
               <template>
-                <Fax />
+                <Fax/>
               </template>
             </div>
           </div>
           <div class="tabArea mapArea">
             <div class="full-height">
               <template>
-                <Map />
+                <Map/>
               </template>
             </div>
           </div>
@@ -67,12 +69,12 @@
       </v-tab-item>
       <v-tab-item :key="6" class="tabArea">
         <template>
-          <Attendees />
+          <Attendees/>
         </template>
       </v-tab-item>
       <v-tab-item :key="7" class="tabArea">
         <template>
-          <Report />
+          <Report/>
         </template>
       </v-tab-item>
     </v-tabs>
@@ -103,7 +105,7 @@
       Fax,
       Map
     },
-    data () {
+    data() {
       return {
         waitingForData: false,
         snackbar: false,
@@ -116,21 +118,27 @@
       }
     },
     computed: {
-      ...mapGetters({haveDataToSave: 'haveDataToSave', jobsList: 'jobsList', currentJobId: 'currentJobId', currentJob: 'currentJob', jobById: 'jobById'}),
+      ...mapGetters({
+        haveDataToSave: 'haveDataToSave',
+        jobsList: 'jobsList',
+        currentJobId: 'currentJobId',
+        currentJob: 'currentJob',
+        jobById: 'jobById'
+      }),
       // were not able to get the watch work with wsConnected as mapGetters => implement computed property manually
-      wsConnected () {
+      wsConnected() {
         return this.$store.state.socket.isConnected
       }
     },
     watch: {
-      wsConnected () {
+      wsConnected() {
         console.log(`WebSocket connection state changed. Connected: ${this.wsConnected}`)
         if (this.wsConnected) {
           this.loadJobFromServer()
         }
       }
     },
-    created () {
+    created() {
       const jobId = this.$attrs.jobId
       const jobs = this.jobsList
       if (jobId === undefined || jobs === undefined || jobs.length === 0) {
@@ -165,7 +173,7 @@
         'requestMaterialMetadataFromServer', // map `this.requestMaterialMetadataFromServer()` to `this.$store.dispatch('requestMaterialMetadataFromServer')`
         'requestMaterialTypesFromServer' // map `this.requestMaterialTypesFromServer()` to `this.$store.dispatch('requestMaterialTypesFromServer')`
       ]),
-      async loadJobFromServer () {
+      async loadJobFromServer() {
         this.waitingForData = true
         try {
           const options = {
@@ -179,8 +187,16 @@
           }
           await this.requestJobFromServer(options)
           await this.requestStaffFromServer({$session: this.$session, $route: this.$route, $router: this.$router})
-          await this.requestMaterialMetadataFromServer({$session: this.$session, $route: this.$route, $router: this.$router})
-          await this.requestMaterialTypesFromServer({$session: this.$session, $route: this.$route, $router: this.$router})
+          await this.requestMaterialMetadataFromServer({
+            $session: this.$session,
+            $route: this.$route,
+            $router: this.$router
+          })
+          await this.requestMaterialTypesFromServer({
+            $session: this.$session,
+            $route: this.$route,
+            $router: this.$router
+          })
         } catch (ex) {
           this._handleError(ex, 'Lesen der Einsatzdaten vom Server fehlgeschlagen')
         }
@@ -199,7 +215,7 @@
         console.log(snackText, ex)
       }
     },
-    beforeRouteLeave (to, from, next) {
+    beforeRouteLeave(to, from, next) {
       this.storeRemoveDecryptedJobs()
       next()
     }

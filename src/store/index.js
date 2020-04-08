@@ -297,6 +297,7 @@ async function _requestDataFromServer (commit, apiPath, mutationFunction, option
   let session = options.$session
   const username = session.get('username')
   let at = session.get('accessToken') + '.' + btoa(username)
+  // console.log(`_requestDataFromServer with at ${at}`)
   let config = {headers: {'Authorization': 'bearer ' + at}}
 
   try {
@@ -306,14 +307,18 @@ async function _requestDataFromServer (commit, apiPath, mutationFunction, option
     const res = ex.response
     if (res) {
       if (res.status === 401) {
+        // console.log('response 401 -> call tryLoginWithToken')
         const haveSession = await self.dispatch('tryLoginWithToken', options)
         if (haveSession) {
           at = session.get('accessToken') + '.' + btoa(username)
+          // console.log(`_requestDataFromServer after tryLoginWithToken with at ${at}`)
           config = {headers: {'Authorization': 'bearer ' + at}}
           const response = await axios.get(apiPath, config)
+          // console.log(`Request successfully sent`)
           commit(mutationFunction, response.data)
+        } else {
+          throw new Error(`Login failed for accessing ${apiPath}`)
         }
-        throw new Error(`Login failed for accessing ${apiPath}`)
       } else {
         if (res.data) {
           console.log(`Error while requesting data from ${apiPath}: ${res.data.error}`)
