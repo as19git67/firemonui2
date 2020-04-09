@@ -17,6 +17,7 @@
                     :items="jobsList"
                     :options="tableOptions"
                     :custom-sort="customSort"
+                    :loading="loading"
                     class="elevation-1"
                     hide-default-footer
                     :disable-pagination="true">
