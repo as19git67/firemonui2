@@ -7,9 +7,9 @@
       <v-container fluid>
         <v-card>
           <v-card-title dark color="info">
-            Benutzerkonto von <span class="username">{{username}}</span> verwalten:
+            Benutzerkonto von<span class="username ml-1 mr-1">{{username}}</span>verwalten:
           </v-card-title>
-          <v-layout row>
+          <v-layout row class="ml-1">
             <v-flex xs12 sm9 md7 lg5>
               <v-card-text>Email Adresse: <span class="email">{{email}}</span></v-card-text>
             </v-flex>
@@ -19,7 +19,7 @@
               </v-btn>
             </v-flex>
           </v-layout>
-          <v-layout v-if="hasFullRight" row>
+          <v-layout v-if="hasFullRight" row class="ml-1">
             <v-flex xs12 sm9 md7 lg5>
               <v-card-text>
                 Geheimer Schlüssel zum Schützen der Daten: <span class="keystate">{{keystate}}</span>
@@ -180,7 +180,7 @@
 
 <style scoped>
   .username {
-    font-style: italic;
+    font-weight: bold;
   }
 
   .email {
