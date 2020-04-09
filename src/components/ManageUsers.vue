@@ -231,12 +231,12 @@
           `Wenn dem Benutzer ${user.name} das Recht zum Dechiffrieren entzogen wird, wird der ihm zugeordnete geheime Dechiffrierschlüssel entfernt. ` +
           `Hinweis: wenn kein anderer Benutzer mehr das Recht zum Dechiffrieren hat, oder niemand mehr sein jeweiliges Passwort für den Dechiffrierschlüssel ` +
           `kennt, können die Daten nie mehr entschlüsselt werden. Wollen sie Benutzer ${user.name} das Recht zum Dechiffrieren entziehen?`
-        let ok = await this.$confirm(message, {
+        let notOk = await this.$confirm(message, {
           title: 'Recht zum Dechiffrieren entziehen',
-          buttonTrueText: 'Ja',
-          buttonFalseText: 'Nein'
+          buttonTrueText: 'Nein',
+          buttonFalseText: 'Ja'
         })
-        if (!ok) {
+        if (notOk) {
           return
         }
         let ownPassword = await this.$askPassphrase(
@@ -393,9 +393,9 @@
       },
       async deleteUser(name) {
         if (!this.loading) {
-          let yes = await this.$confirm(`Soll der Benutzer "${name}" wirklich gelöscht werden?`,
-            {title: 'Benutzer löschen', buttonTrueText: 'Ja', buttonFalseText: 'Nein'})
-          if (yes) {
+          let no = await this.$confirm(`Soll der Benutzer "${name}" wirklich gelöscht werden?`,
+            {title: 'Benutzer löschen', buttonTrueText: 'Nein', buttonFalseText: 'Ja'})
+          if (!no) {
             this.loading = true
             let at = this.$session.get('accessToken') + '.' + btoa(this.$session.get('username'))
             let config = {

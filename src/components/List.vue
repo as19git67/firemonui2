@@ -292,9 +292,9 @@
           if (jobToDelete) {
             let title = jobToDelete.title
             this.$confirm(`Sollen die Daten mit dem Titel "${title}" wirklich gelöscht werden?`,
-              {title: 'Eintrag löschen', buttonTrueText: 'Ja', buttonFalseText: 'Nein'})
-              .then(yes => {
-                if (yes) {
+              {title: 'Eintrag löschen', buttonTrueText: 'Nein', buttonFalseText: 'Ja'})
+              .then(no => {
+                if (!no) {
                   this.loading = true
                   this.deleteJobAtServer({
                     $session: this.$session,
@@ -319,11 +319,11 @@
         if (!this.loading) {
           let jobToEncrypt = this.jobById(jobId)
           let title = jobToEncrypt.title
-          let yes = await
+          let no = await
             this.$confirm(
               `Sollen die Daten von "${title}" wirklich verschlüsselt werden? Die Daten können nur mit dem geheimen Dechiffrierschlüssel wieder hergestellt werden.`,
-              {title: 'Eintrag chiffrieren', buttonTrueText: 'Ja', buttonFalseText: 'Nein'})
-          if (yes) {
+              {title: 'Eintrag chiffrieren', buttonTrueText: 'Nein', buttonFalseText: 'Ja'})
+          if (!no) {
             try {
               this.loading = true
               await this.encryptJobById({jobId: jobId})
