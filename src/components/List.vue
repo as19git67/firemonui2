@@ -55,7 +55,7 @@
           </v-btn>
           <v-btn v-if="!item.encrypted && canEncrypt" icon @click="encryptJob(item.id)">
             <v-icon title="verschlüsseln">
-              mdi-lock-outline
+              mdi-key
             </v-icon>
           </v-btn>
           <v-btn v-if="item.encrypted && canDecrypt" icon @click="showEncrypted(item.id)">
@@ -217,19 +217,19 @@
           $router: this.$router,
           requestOptions: {withImages: false}
         })
-          .then(() => {
-            this.loading = false
-            this.onResize()
-            if (this.$route.query.doaction === 'deleteJob' && this.$route.query.jobId !== undefined) {
-              this.deleteJob(this.$route.query.jobId)
-            }
-            if (this.$route.query.doaction === 'decryptJob' && this.$route.query.jobId !== undefined) {
-              this.decryptJob(this.$route.query.jobId)
-            }
-            if (this.$route.query.doaction === 'showEncrypted' && this.$route.query.jobId !== undefined) {
-              this.showEncrypted(this.$route.query.jobId)
-            }
-          }).catch(reason => {
+        .then(() => {
+          this.loading = false
+          this.onResize()
+          if (this.$route.query.doaction === 'deleteJob' && this.$route.query.jobId !== undefined) {
+            this.deleteJob(this.$route.query.jobId)
+          }
+          if (this.$route.query.doaction === 'decryptJob' && this.$route.query.jobId !== undefined) {
+            this.decryptJob(this.$route.query.jobId)
+          }
+          if (this.$route.query.doaction === 'showEncrypted' && this.$route.query.jobId !== undefined) {
+            this.showEncrypted(this.$route.query.jobId)
+          }
+        }).catch(reason => {
           this._handleError(reason, 'Lesen der Jobliste fehlgeschlagen')
         })
       },
@@ -277,13 +277,13 @@
           const title = titleField.value
           this.loading = true
           this.createJobAtServer({$session: this.$session, $route: this.$route, $router: this.$router, title: title})
-            .then(() => {
-              this.loading = false
-            })
-            .catch(reason => {
-              this.loading = false
-              this._handleError(reason, 'Einsatz anlegen fehlgeschlagen')
-            })
+          .then(() => {
+            this.loading = false
+          })
+          .catch(reason => {
+            this.loading = false
+            this._handleError(reason, 'Einsatz anlegen fehlgeschlagen')
+          })
         }
       },
       deleteJob(jobId) {
@@ -293,23 +293,23 @@
             let title = jobToDelete.title
             this.$confirm(`Sollen die Daten mit dem Titel "${title}" wirklich gelöscht werden?`,
               {title: 'Eintrag löschen', buttonTrueText: 'Nein', buttonFalseText: 'Ja'})
-              .then(no => {
-                if (!no) {
-                  this.loading = true
-                  this.deleteJobAtServer({
-                    $session: this.$session,
-                    $route: this.$route,
-                    $router: this.$router,
-                    jobId: jobId
-                  })
-                    .then(() => {
-                      this.loading = false
-                    })
-                    .catch(reason => {
-                      this._handleError(reason, 'Einsatz löschen fehlgeschlagen')
-                    })
-                }
-              })
+            .then(no => {
+              if (!no) {
+                this.loading = true
+                this.deleteJobAtServer({
+                  $session: this.$session,
+                  $route: this.$route,
+                  $router: this.$router,
+                  jobId: jobId
+                })
+                .then(() => {
+                  this.loading = false
+                })
+                .catch(reason => {
+                  this._handleError(reason, 'Einsatz löschen fehlgeschlagen')
+                })
+              }
+            })
           } else {
             console.log('ERROR: unknown job id for deletion', jobId)
           }
@@ -361,29 +361,48 @@
       async showEncrypted(jobId) {
         if (!this.loading) {
           if (this.canDecrypt) {
-            const message = 'Zum Entschlüsseln muss das Passwort für den Dechiffrierschlüssel eingegeben werden:'
-            const passphrase = await this.$askPassphrase(message, {
-              title: 'Passwort eingeben',
-              idForm: 'decryptionKeyPassphrase',
-              label: 'Passwort',
-              btnTextOk: 'Dechiffrieren',
-              needStrongPassword: false
-            })
+            let passphrase
+            let passphraseExpiresAt = this.$session.get('encryptionKeyPassphraseExpiresAt')
+            if (passphraseExpiresAt) {
+              passphraseExpiresAt = moment(passphraseExpiresAt)
+              if (!passphraseExpiresAt.isValid() || moment().isAfter(passphraseExpiresAt)) {
+                this.$session.remove('encryptionKeyPassphrase')
+                this.$session.remove('encryptionKeyPassphraseExpiresAt')
+              } else {
+                passphrase = this.$session.get('encryptionKeyPassphrase')
+              }
+            }
+            if (!passphrase) {
+              const message = 'Zum Entschlüsseln muss das Passwort für den Dechiffrierschlüssel eingegeben werden:'
+              passphrase = await this.$askPassphrase(message, {
+                title: 'Passwort eingeben',
+                idForm: 'decryptionKeyPassphrase',
+                label: 'Passwort',
+                btnTextOk: 'Dechiffrieren',
+                needStrongPassword: false
+              })
+            }
             if (passphrase) {
               const encryptionKeyName = this.$session.get('encryptionKeyName')
-              if (passphrase) {
-                try {
-                  this.loading = true
-                  const id = await this.tempDecryptJobById({
-                    jobId: jobId,
-                    passphrase: passphrase,
-                    encryptionKeyName: encryptionKeyName
-                  })
-                  this.loading = false
-                  this.$router.push(`/alarm/${id}`)
-                } catch (ex) {
-                  this._handleError(ex, 'Dechiffrieren fehlgeschlagen')
-                }
+              try {
+                this.loading = true
+                const id = await this.tempDecryptJobById({
+                  jobId: jobId,
+                  passphrase: passphrase,
+                  encryptionKeyName: encryptionKeyName
+                })
+                this.$session.set('encryptionKeyPassphrase', passphrase)
+                this.$session.set('encryptionKeyPassphraseExpiresAt', moment().add(30, 'minutes'))
+                this.loading = false
+                this.$router.push(`/alarm/${id}`).catch((err) => {
+                  if (err) {
+                    throw new Error(`Problem handling router push: ${err}.`)
+                  }
+                })
+              } catch (ex) {
+                this.$session.remove('encryptionKeyPassphrase')
+                this.$session.remove('encryptionKeyPassphraseExpiresAt')
+                this._handleError(ex, 'Dechiffrieren fehlgeschlagen')
               }
             }
           } else {
