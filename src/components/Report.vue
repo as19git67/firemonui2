@@ -537,7 +537,7 @@
                     throw new Error('MaterialList metadata does not match values')
                   }
                 }
-                this.materialList.push(m)
+                this.materialList.push(_.cloneDeep(m))
               }
             })
           }
