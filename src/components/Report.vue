@@ -503,6 +503,7 @@
       }
     },
     created() {
+      this.timeRegex = /^(\d{2}):(\d{2})(?::(\d{2}))?$/
       this.updateData = {report: {}}
       let job = this.currentJob
       if (this.currentJob.id !== undefined) {
@@ -647,7 +648,10 @@
         }
 
         if (moment.isMoment(oldDateTime)) {
-          let newDateTime = oldDateTime
+          let newDateTime = oldDateTime.clone();
+          if (!this.timeRegex.test(value)) {
+            return
+          }
           let newTime = moment(value, 'HH:mm')
           if (newTime.isValid()) {
             newDateTime.set('hour', newTime.hour())
@@ -837,7 +841,7 @@
           category: this.materialTypesByType[materialType].category,
           name: this.materialTypesByType[materialType].name,
           values: this.materialMetadata[this.materialTypesByType[materialType].category]
-            ? this.materialMetadata[this.materialTypesByType[materialType].category] : []
+                  ? this.materialMetadata[this.materialTypesByType[materialType].category] : []
         }
         this.materialList.push(m)
       },

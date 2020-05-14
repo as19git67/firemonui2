@@ -107,9 +107,7 @@ function _addAJob (state, job) {
     }
   })
 
-  if (job.number || job.keyword || job.catchword || _.values(job.attendees).length || reportEdited) {
-    job.onlyAdminCanDelete = true
-  }
+  job.onlyAdminCanDelete = job.number || job.keyword || job.catchword || _.values(job.attendees).length || reportEdited;
 
   state.jobs[job.id] = job
   state.jobsAsList.push(job)

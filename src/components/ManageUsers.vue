@@ -29,7 +29,7 @@
           />
         </template>
         <template v-slot:item.expiredAfter="{ item }">
-          <span :class="item.expiredClass">{{ item.expiredAfter ? item.expiredAfter.format('L LTS') : '' }}</span>
+          <span :class="item.expiredClass">{{ item.expiredAfter ? item.expiredAfter.format('L LT') : '' }}</span>
         </template>
         <template v-slot:item.actions="{ item }">
           <v-btn v-if="isAdmin" @click="deleteUser(item.name)">

@@ -55,7 +55,7 @@ Vue.filter('toCurrency', function (value) {
 Vue.filter('toDate', function (value) {
   if (value && moment.isMoment(value)) {
     value.locale('de')
-    let f = value.format('L LTS')
+    let f = value.format('L LT')
     return f
   } else {
     return ''
