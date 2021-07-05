@@ -28,6 +28,11 @@
                       @click="toggleIsAdmin(item.name)"
           />
         </template>
+        <template v-slot:item.isGroupAdmin="{ item }">
+          <v-checkbox class="mt-0" :input-value="item.isGroupAdmin" hide-details :disabled="item.isGroupAdminDisabled"
+                      @click="toggleIsGroupAdmin(item.name)"
+          />
+        </template>
         <template v-slot:item.expiredAfter="{ item }">
           <span :class="item.expiredClass">{{ item.expiredAfter ? item.expiredAfter.format('L LT') : '' }}</span>
         </template>
@@ -88,6 +93,7 @@
           {text: 'Bearbeiter', sortable: true, value: 'canWrite'},
           {text: 'Entschlüsseln', sortable: true, value: 'canDecrypt'},
           {text: 'Admin', sortable: true, value: 'isAdmin'},
+          {text: 'Gruppenadmin', sortable: true, value: 'isGroupAdmin'},
           {text: 'Ablaufsdatum', sortable: true, value: 'expiredAfter'},
           {text: 'Aktionen', sortable: false, value: 'actions'}
         ]
@@ -135,12 +141,14 @@
             }
             if (user.state === 'new') {
               user.isAdminDisabled = true
+              user.isGroupAdminDisabled = true
               user.canReadDisabled = true
               user.canWriteDisabled = true
               user.canDecryptDisabled = true
             } else {
               user.canDecryptDisabled = !(isAdmin && user.canRead && user.canWrite)
               user.isAdminDisabled = !user.canWrite
+              user.isGroupAdminDisabled = !isAdmin
               if (!user.canRead) {
                 user.canWriteDisabled = true
               }
@@ -180,6 +188,7 @@
             this.$set(user, 'canWriteDisabled', !response.data.canRead)
             this.$set(user, 'canDecryptDisabled', !(this.isAdmin && response.data.canRead && response.data.canWrite))
             this.$set(user, 'isAdminDisabled', !response.data.canRead)
+            this.$set(user, 'isGroupAdminDisabled', !this.isAdmin)
           } catch (ex) {
             this._handleError(ex, 'Fehler beim Ändern der Berechtigung (canRead)')
           }
@@ -388,6 +397,27 @@
             this.loading = false
           } catch (ex) {
             this._handleError(ex, 'Fehler beim Ändern der Berechtigung (isAdmin)')
+          }
+        }
+      },
+      async toggleIsGroupAdmin(name) {
+        if (!this.loading) {
+          this.error = ''
+          this.loading = true
+          let at = this.$session.get('accessToken') + '.' + btoa(this.$session.get('username'))
+          let config = {
+            headers: {'Authorization': 'bearer ' + at}
+          }
+          try {
+            let user = _.find(this.users, {name: name})
+            if (user.canRead) {
+              let data = {isGroupAdmin: !user.isGroupAdmin}
+              let response = await axios.put(`/api/user/${name}`, data, config)
+              this.$set(user, 'isGroupAdmin', response.data.isGroupAdmin)
+            }
+            this.loading = false
+          } catch (ex) {
+            this._handleError(ex, 'Fehler beim Ändern der Berechtigung (isGroupAdmin)')
           }
         }
       },

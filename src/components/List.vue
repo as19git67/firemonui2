@@ -107,6 +107,7 @@
         canRead: 'canRead',
         canWrite: 'canWrite',
         isAdmin: 'isAdmin',
+        isGroupAdmin: 'isGroupAdmin',
         canDecrypt: 'canDecrypt',
         canEncrypt: 'canEncrypt',
         currentJobId: 'currentJobId'

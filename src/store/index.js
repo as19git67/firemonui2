@@ -192,6 +192,7 @@ function _extractAccessRights (state, accessRights) {
   state.canRead = _.indexOf(accessRights, 'read') >= 0
   state.canWrite = _.indexOf(accessRights, 'write') >= 0
   state.isAdmin = _.indexOf(accessRights, 'admin') >= 0
+  state.isGroupAdmin = _.indexOf(accessRights, 'groupadmin') >= 0
   state.canEncrypt = _.indexOf(accessRights, 'encrypt') >= 0
   state.canDecrypt = _.indexOf(accessRights, 'decrypt') >= 0
 }
@@ -332,6 +333,7 @@ async function _requestDataFromServer (commit, apiPath, mutationFunction, option
 export default new Vuex.Store({
   state: {
     isAdmin: false,
+    isGroupAdmin: false,
     canRead: false,
     canWrite: false,
     canDecrypt: false,
@@ -551,6 +553,9 @@ export default new Vuex.Store({
     },
     isAdmin (state) {
       return state.isAdmin
+    },
+    isGroupAdmin (state) {
+      return state.isGroupAdmin
     },
     canDecrypt (state) {
       return state.canDecrypt
