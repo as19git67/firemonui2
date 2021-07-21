@@ -10,6 +10,8 @@ import SetupAuth3 from '@/components/SetupAuth3'
 import SetupAuth4 from '@/components/SetupAuth4'
 import ManageUsers from '@/components/ManageUsers'
 import ManageAccount from '@/components/ManageAccount'
+import ManageGroups from '@/components/ManageGroups'
+import ManageGroup from '@/components/ManageGroup'
 
 Vue.use(Router)
 Vue.use(VueSession, {persist: true})
@@ -55,6 +57,16 @@ const router = new Router({
       path: '/manageaccount',
       name: 'ManageAccount',
       component: ManageAccount
+    },
+    {
+      path: '/managegroups',
+      name: 'ManageGroups',
+      component: ManageGroups
+    },
+    {
+      path: '/managegroup',
+      name: 'ManageGroup',
+      component: ManageGroup
     },
     {
       path: '/alarm/:jobId',

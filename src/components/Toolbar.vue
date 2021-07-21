@@ -1,7 +1,7 @@
 <template>
   <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" app dark color="accent" fixed flat>
     <v-toolbar-title class="ml-0 pl-3 toolbar-title">
-      <span class="hidden-sm-and-down">Alarm Monitor:</span>
+      <span class="hidden-sm-and-down">Alarm Monitor</span>
       <span v-if="subTitle" >{{subTitle}}</span>
       <span v-if="username">({{username}})</span>
       <span v-if="isInDevMode">(Development Mode)</span>
@@ -15,6 +15,9 @@
     </v-btn>
     <v-btn v-if="isAdmin" :disabled="haveDataToSave" title="Benutzerliste" icon to="/manageusers">
       <v-icon>mdi-account-multiple</v-icon>
+    </v-btn>
+    <v-btn v-if="isGroupAdmin" :disabled="haveDataToSave" title="Gruppen" icon to="/managegroups">
+      <v-icon>mdi-account-group</v-icon>
     </v-btn>
     <v-btn v-if="isLoggedIn" :disabled="haveDataToSave" title="Benutzerkonto verwalten" icon to="/manageaccount">
       <v-icon>mdi-account-tie</v-icon>
@@ -52,7 +55,8 @@
         currentJob: 'currentJob',
         jobsList: 'jobsList',
         haveActiveJob: 'haveActiveJob',
-        isAdmin: 'isAdmin'
+        isAdmin: 'isAdmin',
+        isGroupAdmin: 'isGroupAdmin'
       }),
       notificationClass: {
         get() {
@@ -118,6 +122,9 @@
 <style scoped>
   .v-toolbar span:not(:first-child) {
     margin-left: 3px;
+  }
+  .toolbar-title span {
+    margin-right: 0.5em;
   }
 
 </style>

@@ -390,9 +390,12 @@
           try {
             let user = _.find(this.users, {name: name})
             if (user.canRead) {
-              let data = {isAdmin: !user.isAdmin}
+              const isAdmin = !user.isAdmin
+              let isGroupAdmin = isAdmin
+              let data = {isAdmin: isAdmin, isGroupAdmin: isGroupAdmin}
               let response = await axios.put(`/api/user/${name}`, data, config)
               this.$set(user, 'isAdmin', response.data.isAdmin)
+              this.$set(user, 'isGroupAdmin', response.data.isGroupAdmin)
             }
             this.loading = false
           } catch (ex) {
