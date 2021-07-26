@@ -12,39 +12,14 @@
           </v-icon>
         </v-btn>
       </v-toolbar-title>
-      <v-data-table :headers="headers" :items="users" class="elevation-1"
+      <v-data-table :headers="headers" :items="groups" class="elevation-1"
                     :loading="loading">
         <v-progress-linear slot="progress" indeterminate color="info"/>
-        <template v-slot:item.canRead="{ item }">
-          <v-checkbox class="mt-0" :input-value="item.canRead" primary hide-details :disabled="item.canReadDisabled"
-                      @click="xtoggleCanRead(item.name)"
-          />
-        </template>
-        <template v-slot:item.canWrite="{ item }">
-          <v-checkbox class="mt-0" :input-value="item.canWrite" primary hide-details :disabled="item.canWriteDisabled"
-                      @click="xtoggleCanWrite(item.name)"
-          />
-        </template>
-        <template v-slot:item.canDecrypt="{ item }">
-          <v-checkbox class="mt-0" :input-value="item.canDecrypt" hide-details :disabled="item.canDecryptDisabled"
-                      @click="toggleCanDecrypt(item.name)"
-          />
-        </template>
-        <template v-slot:item.isAdmin="{ item }">
-          <v-checkbox class="mt-0" :input-value="item.isAdmin" hide-details :disabled="item.isAdminDisabled"
-                      @click="toggleIsAdmin(item.name)"
-          />
-        </template>
-        <template v-slot:item.isGroupAdmin="{ item }">
-          <v-checkbox class="mt-0" :input-value="item.isGroupAdmin" hide-details :disabled="item.isGroupAdminDisabled"
-                      @click="toggleIsGroupAdmin(item.name)"
-          />
-        </template>
-        <template v-slot:item.expiredAfter="{ item }">
-          <span :class="item.expiredClass">{{ item.expiredAfter ? item.expiredAfter.format('L LT') : '' }}</span>
+        <template v-slot:item.id="{ item }">
+          <span>{{ item.id }}</span>
         </template>
         <template v-slot:item.actions="{ item }">
-          <v-btn v-if="isAdmin" @click="deleteUser(item.name)">
+          <v-btn v-if="isAdmin" @click="deleteUser(item.id)">
             Löschen
           </v-btn>
         </template>
@@ -70,7 +45,7 @@ import Toolbar from '@/components/Toolbar.vue'
 import axios from 'axios'
 import moment from 'moment'
 import _ from 'lodash'
-import {mapMutations} from 'vuex'
+import {mapActions, mapMutations} from 'vuex'
 
 export default {
   name: 'ManageGroups',
@@ -79,7 +54,7 @@ export default {
   },
   data() {
     return {
-      users: this.users,
+      groups: this.groups,
       isAdmin: this.isAdmin,
       loading: this.loading,
       errorSnackbar: false,
@@ -93,15 +68,10 @@ export default {
         rowsPerPage: -1
       },
       headers: [
+        {text: 'ID', align: 'left', sortable: true, value: 'id'},
         {text: 'Name', align: 'left', sortable: true, value: 'name'},
-        {text: 'Email', align: 'left', sortable: true, value: 'email'},
-        {text: 'Status', align: 'left', sortable: true, value: 'state'},
-        {text: 'Aktiviert', sortable: true, value: 'canRead'},
-        {text: 'Bearbeiter', sortable: true, value: 'canWrite'},
-        {text: 'Entschlüsseln', sortable: true, value: 'canDecrypt'},
-        {text: 'Admin', sortable: true, value: 'isAdmin'},
-        {text: 'Gruppenadmin', sortable: true, value: 'isGroupAdmin'},
-        {text: 'Ablaufsdatum', sortable: true, value: 'expiredAfter'},
+        {text: 'Beschreibung', align: 'left', sortable: true, value: 'description'},
+        {text: 'Email des Gruppenverantwortlichen', sortable: true, value: 'responsible'},
         {text: 'Aktionen', sortable: false, value: 'actions'}
       ]
     }
@@ -123,7 +93,6 @@ export default {
   },
   created() {
     moment.locale('de')
-    this.storeClearCurrentJobId()
   },
   mounted() {
     const self = this
@@ -133,7 +102,7 @@ export default {
     .then(res => {
       self.groups = res
       _.each(res, function (group) {
-
+// todo
       })
     })
     .catch(reason => {
@@ -141,7 +110,10 @@ export default {
     })
   },
   methods: {
-    ...mapMutations(['storeClearCurrentJobId']),
+    ...mapActions([
+      'requestGroupsFromServer', // map `this.requestGroupsFromServer()` to `this.$store.dispatch('requestGroupsFromServer')`
+      'createGroupAtServer', // map `this.createGroupAtServer()` to `this.$store.dispatch('createGroupAtServer')`
+    ]),
     _handleError: function (ex, snackText) {
       this.loading = false
       let errorMessage = ex.response && ex.response.data && ex.response.data.error ? ex.response.data.error : ex.message
@@ -150,8 +122,44 @@ export default {
       console.log(snackText, ex)
     },
     async addGroup() {
-
+      const formData = await this.$modalDialogForm({
+        message: 'Die ID der Gruppe wird ggf. für die Alarmierung verwendet und muss dann der 5-Ton-Folge entsprechen.',
+        title: 'Neue Gruppe erzeugen',
+        form: [{key: 'id', label: 'ID'}, {key: 'name', label: 'Name'}, {
+          key: 'description',
+          label: 'Beschreibung'
+        }, {key: 'responsible', label: 'Email des Gruppenverantwortlichen'}],
+        btnTextOk: 'Anlegen'
+      })
+      if (formData.length > 0) {
+        this.loading = true
+        let field = _.find(formData, {key: 'id'})
+        const id = field.value
+        field = _.find(formData, {key: 'name'})
+        const name = field.value
+        field = _.find(formData, {key: 'description'})
+        const description = field.value
+        field = _.find(formData, {key: 'responsible'})
+        const responsible = field.value
+        this.createGroupAtServer({
+          $session: this.$session,
+          $route: this.$route,
+          $router: this.$router,
+          id: id,
+          name: name,
+          description: description,
+          responsible: responsible
+        })
+        .then(() => {
+          this.loading = false
+        })
+        .catch(reason => {
+          this.loading = false
+          this._handleError(reason, 'Gruppe anlegen fehlgeschlagen')
+        })
+      }
     },
+
     async xtoggleCanRead(name) {
       if (!this.loading) {
         this.error = ''

@@ -7,7 +7,7 @@ import axios from 'axios'
 Vue.use(Vuex)
 moment.locale('de')
 
-function _updateHaveActiveJob (state) {
+function _updateHaveActiveJob(state) {
   let j = _.filter(state.jobsAsList, function (job) {
     if (job.end) {
       return !!(moment.isMoment(job.end) && job.end.isAfter(moment()))
@@ -18,7 +18,7 @@ function _updateHaveActiveJob (state) {
   state.haveActiveJob = (j.length > 0)
 }
 
-function _updateDuration (job) {
+function _updateDuration(job) {
   let s, e
   if (!job) {
     return
@@ -48,7 +48,7 @@ function _updateDuration (job) {
   }
 }
 
-function _addAJob (state, job) {
+function _addAJob(state, job) {
   _.each(_.keys(job), function (key) {
     let value = job[key]
     if (_.isString(value) && value.charAt(0) === '[') {
@@ -117,7 +117,7 @@ function _addAJob (state, job) {
   }
 }
 
-async function _getRefreshedTokenFromServer ($session) {
+async function _getRefreshedTokenFromServer($session) {
   const at = $session.get('accessToken') + '.' + btoa($session.get('username'))
   const config = {headers: {'Authorization': 'bearer ' + at}}
   const response = await axios.get('/api/token', config)
@@ -126,7 +126,7 @@ async function _getRefreshedTokenFromServer ($session) {
   $session.set('accessTokenExpiresAfter', tokenData.refreshAccessTokenExpiresAfter)
 }
 
-function _startRefreshingAccessToken ($session) {
+function _startRefreshingAccessToken($session) {
   if ($session.exists()) {
     const refreshingToken = $session.get('refreshingToken')
     if (refreshingToken) {
@@ -176,7 +176,7 @@ function _startRefreshingAccessToken ($session) {
   }
 }
 
-function _hasRightRead (accessRights) {
+function _hasRightRead(accessRights) {
   return _.indexOf(accessRights, 'read') >= 0
 }
 
@@ -188,7 +188,7 @@ function _hasRightRead (accessRights) {
 //   return _.indexOf(accessRights, 'admin') >= 0
 // }
 
-function _extractAccessRights (state, accessRights) {
+function _extractAccessRights(state, accessRights) {
   state.canRead = _.indexOf(accessRights, 'read') >= 0
   state.canWrite = _.indexOf(accessRights, 'write') >= 0
   state.isAdmin = _.indexOf(accessRights, 'admin') >= 0
@@ -197,7 +197,7 @@ function _extractAccessRights (state, accessRights) {
   state.canDecrypt = _.indexOf(accessRights, 'decrypt') >= 0
 }
 
-async function _checkSession (state, options) {
+async function _checkSession(state, options) {
   options || (options = {})
   options.requestOptions || (options.requestOptions = {})
   if (options.$session.exists()) {
@@ -214,7 +214,7 @@ async function _checkSession (state, options) {
   }
 }
 
-async function _updateJobAttendees (commit, state, options) {
+async function _updateJobAttendees(commit, state, options) {
   options || (options = {})
   options.requestOptions || (options.requestOptions = {})
   const jobId = options.requestOptions.jobId
@@ -281,7 +281,7 @@ async function _updateJobAttendees (commit, state, options) {
   }
 }
 
-function _setStaff (state, persons) {
+function _setStaff(state, persons) {
   state.staff = {}
   state.staffAsList = []
   _.each(persons, function (person) {
@@ -291,7 +291,12 @@ function _setStaff (state, persons) {
   })
 }
 
-async function _requestDataFromServer (commit, apiPath, mutationFunction, options) {
+function _addAGroup(state, group) {
+  state.groups[group.id] = group
+  state.groupsAsList.push(group)
+}
+
+async function _requestDataFromServer(commit, apiPath, mutationFunction, options) {
   const self = this
   let session = options.$session
   const username = session.get('username')
@@ -347,6 +352,8 @@ export default new Vuex.Store({
     currentJob: {},
     currentJobAttendeesById: {},
     currentJobAttendeesCount: 0,
+    groups: {},
+    groupsAsList: [],
     staff: {},
     savingEnabled: false,
     haveDataToSave: false,
@@ -399,7 +406,7 @@ export default new Vuex.Store({
       if (job.id === undefined) {
         throw new Error('job.id is undefined')
       }
-      if (_.isNumber(job.id)) {
+      if (typeof job.id === 'number') {
         job.id = job.id.toString()
       }
       _.pullAllBy(state.jobsAsList, [job], 'id') // remove existing job with that id
@@ -486,7 +493,7 @@ export default new Vuex.Store({
         _setStaff(state, job.attendees)
       }
     },
-    storeSetSavingEnabled (state, enabled) {
+    storeSetSavingEnabled(state, enabled) {
       state.savingEnabled = !!enabled
     },
     setJobData: function (state, data) {
@@ -500,90 +507,103 @@ export default new Vuex.Store({
         _updateHaveActiveJob(state)
       }
     },
-    SOCKET_ONOPEN (state, event) {
+    storeAddSingleGroup: function (state, group) {
+      if (group.id === undefined) {
+        throw new Error('group.id is undefined')
+      }
+      if (group.name === undefined) {
+        throw new Error('group.name is undefined')
+      }
+      if (typeof group.id === 'number') {
+        group.id = group.id.toString()
+      }
+      _.pullAllBy(state.groupsAsList, [group], 'id') // remove existing group with that id
+      _addAGroup(state, group)
+    },
+    SOCKET_ONOPEN(state, event) {
       Vue.prototype.$socket = event.currentTarget
       state.socket.isConnected = true
     },
-    SOCKET_ONCLOSE (state, event) {
+    SOCKET_ONCLOSE(state, event) {
       state.socket.isConnected = false
     },
-    SOCKET_ONERROR (state, event) {
+    SOCKET_ONERROR(state, event) {
       state.socket.isConnected = false
       console.error('Websocket error: ', event)
     },
     // default handler called for all methods
-    SOCKET_ONMESSAGE (state, message) {
+    SOCKET_ONMESSAGE(state, message) {
       state.socket.message = message
     },
     // mutations for reconnect methods
-    SOCKET_RECONNECT (state, count) {
+    SOCKET_RECONNECT(state, count) {
       console.info('Websocket reconnect: ', count)
     },
-    SOCKET_RECONNECT_ERROR (state) {
+    SOCKET_RECONNECT_ERROR(state) {
       state.socket.reconnectError = true
       state.socket.isConnected = false
     }
   },
   getters: {
-    haveDataToSave (state) {
+    haveDataToSave(state) {
       console.log('ASK for have data to save: ' + state.haveDataToSave)
       return state.haveDataToSave
     },
-    appName (state) {
+    appName(state) {
       return state.appName
     },
-    materialTypes (state) {
+    materialTypes(state) {
       return state.materialTypes
     },
-    materialTypesByType (state) {
+    materialTypesByType(state) {
       let matTypesByType = {}
       for (let i = 0; i < state.materialTypes.length; i++) {
         matTypesByType[state.materialTypes[i].id] = state.materialTypes[i]
       }
       return matTypesByType
     },
-    materialMetadata (state) {
+    materialMetadata(state) {
       return state.materialMetadata
     },
-    canRead (state) {
+    canRead(state) {
       return state.canRead
     },
-    canWrite (state) {
+    canWrite(state) {
       return state.canWrite
     },
-    isAdmin (state) {
+    isAdmin(state) {
       return state.isAdmin
     },
-    isGroupAdmin (state) {
+    isGroupAdmin(state) {
       return state.isGroupAdmin
     },
-    canDecrypt (state) {
+    canDecrypt(state) {
       return state.canDecrypt
     },
-    canEncrypt (state) {
+    canEncrypt(state) {
       return state.canEncrypt
     },
-    jobs (state) {
+    jobs(state) {
       return state.jobs
     },
-    jobsList (state) {
+    jobsList(state) {
       return state.jobsAsList
     },
-    currentJobId (state) {
+    currentJobId(state) {
       return state.jobId
     },
-    currentJob (state) {
+    currentJob(state) {
       return state.currentJob
     },
     jobById: state => jobId => state.jobs[jobId],
     haveActiveJob: state => state.haveActiveJob,
-    savingEnabled (state) {
+    savingEnabled(state) {
       return state.savingEnabled
     },
-    staff (state) {
+    staff(state) {
       return state.staff
     },
-    staffAsList (state) {
+    staffAsList(state) {
       return state.staffAsList
     },
     attendeesOfCurrentJob: state => state.jobId && state.jobs && state.jobs[state.jobId] ? state.jobs[state.jobId].attendees : [],
@@ -591,7 +611,7 @@ export default new Vuex.Store({
     attendeesCountOfCurrentJob: state => {
       return state.currentJobAttendeesCount
     },
-    report (state) {
+    report(state) {
       if (state.jobs[state.jobId]) {
         return state.jobs[state.jobId].report
       } else {
@@ -600,7 +620,7 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    async tryLoginWithToken ({commit, state}, options) {
+    async tryLoginWithToken({commit, state}, options) {
       let autotoken = options.$route.query.autotoken
       if (autotoken) {
         console.log('Try to authenticate with autotoken...')
@@ -638,7 +658,7 @@ export default new Vuex.Store({
         return false
       }
     },
-    async loginWithCode ({commit, state}, options) {
+    async loginWithCode({commit, state}, options) {
       if (!options.$session) {
         throw new Error('$session not set in options')
       }
@@ -670,7 +690,7 @@ export default new Vuex.Store({
       }
     },
 
-    async requestMaterialMetadataFromServer ({commit, state}, options) {
+    async requestMaterialMetadataFromServer({commit, state}, options) {
       let session = await _checkSession.call(this, state, options)
       if (!session) {
         return
@@ -685,7 +705,7 @@ export default new Vuex.Store({
       }
     },
 
-    async requestMaterialTypesFromServer ({commit, state}, options) {
+    async requestMaterialTypesFromServer({commit, state}, options) {
       let session = await _checkSession.call(this, state, options)
       if (!session) {
         return
@@ -699,8 +719,7 @@ export default new Vuex.Store({
         // ignore error
       }
     },
-
-    async requestJobsFromServer ({commit, state}, options) {
+    async requestJobsFromServer({commit, state}, options) {
       const mutationFunction = 'storeAddJobs'
       let session = await _checkSession.call(this, state, options)
       if (!session) {
@@ -717,8 +736,7 @@ export default new Vuex.Store({
         throw ex
       }
     },
-
-    async requestJobFromServer ({commit, state}, options) {
+    async requestJobFromServer({commit, state}, options) {
       options || (options = {})
       options.requestOptions || (options.requestOptions = {})
       const withImages = options.requestOptions.withImages
@@ -775,7 +793,7 @@ export default new Vuex.Store({
         }
       }
     },
-    async createJobAtServer ({commit, state}, options) {
+    async createJobAtServer({commit, state}, options) {
       const loginOptions = _.pick(options, ['$session', '$route', '$router'])
       if (!loginOptions.$session.exists()) {
         const haveSession = await this.dispatch('tryLoginWithToken', options)
@@ -800,7 +818,7 @@ export default new Vuex.Store({
         throw ex
       }
     },
-    async deleteJobAtServer ({commit, state}, options) {
+    async deleteJobAtServer({commit, state}, options) {
       const jobId = options.jobId
       if (options.$session.exists()) {
         const at = options.$session.get('accessToken') + '.' + btoa(options.$session.get('username'))
@@ -816,7 +834,7 @@ export default new Vuex.Store({
         throw new Error('Can\'t delete job without being logged in')
       }
     },
-    async encryptJobById ({commit, state}, payload) {
+    async encryptJobById({commit, state}, payload) {
       const jobId = payload.jobId
       let job = state.jobs[jobId]
       if (job) {
@@ -832,7 +850,7 @@ export default new Vuex.Store({
         }
       }
     },
-    async decryptJobById ({commit, state}, payload) {
+    async decryptJobById({commit, state}, payload) {
       let jobId = payload.jobId
       let passphrase = payload.passphrase
       let job = state.jobs[jobId]
@@ -849,14 +867,20 @@ export default new Vuex.Store({
         }
       }
     },
-    async tempDecryptJobById ({commit, state}, payload) {
+    async tempDecryptJobById({commit, state}, payload) {
       let jobId = payload.jobId
       let passphrase = payload.passphrase
       let encryptionKeyName = payload.encryptionKeyName
       let job = state.jobs[jobId]
       if (job) {
         let at = this._vm.$session.get('accessToken') + '.' + btoa(this._vm.$session.get('username'))
-        let config = {headers: {'Authorization': 'bearer ' + at, password: passphrase, encryptionKeyName: encryptionKeyName}}
+        let config = {
+          headers: {
+            'Authorization': 'bearer ' + at,
+            password: passphrase,
+            encryptionKeyName: encryptionKeyName
+          }
+        }
         try {
           const result = await axios.get(`/api/jobs/${jobId}?withImages=1`, config)
           let job = result.data
@@ -871,7 +895,7 @@ export default new Vuex.Store({
         }
       }
     },
-    async updateJobAtServer ({commit, state}, options) {
+    async updateJobAtServer({commit, state}, options) {
       const self = this
       const loginOptions = _.pick(options, ['$session', '$route', '$router'])
       if (loginOptions.$session.exists()) {
@@ -917,8 +941,8 @@ export default new Vuex.Store({
         }
       }
     },
-    async requestStaffFromServer ({commit, state}, options) {
-      function _handleResponseError (ex) {
+    async requestStaffFromServer({commit, state}, options) {
+      function _handleResponseError(ex) {
         const res = ex.response
         if (res.data) {
           console.log('requestStaffFromServer: Error while retrieving staff', res.data.error)
@@ -929,7 +953,7 @@ export default new Vuex.Store({
         throw ex
       }
 
-      async function _requestFromServer () {
+      async function _requestFromServer() {
         const at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
         const config = {headers: {'Authorization': 'bearer ' + at}}
         const response = await axios.get('/api/staff', config)
@@ -979,15 +1003,15 @@ export default new Vuex.Store({
         throw new Error('Benutzer hat kein Leserecht')
       }
     },
-    async addAttendeeToJob ({commit, state}, options) {
+    async addAttendeeToJob({commit, state}, options) {
       options.add = true
       await _updateJobAttendees(commit, state, options)
     },
-    async removeAttendeeFromJob ({commit, state}, options) {
+    async removeAttendeeFromJob({commit, state}, options) {
       options.add = false
       await _updateJobAttendees(commit, state, options)
     },
-    async getDetailsForUser ({commit, state}, options) {
+    async getDetailsForUser({commit, state}, options) {
       options || (options = {})
       options.requestOptions || (options.requestOptions = {})
       const loginOptions = _.pick(options, ['$session', '$route', '$router'])
@@ -1027,6 +1051,177 @@ export default new Vuex.Store({
           } else {
             console.log(`Error while retrieving user data for ${username}: ${res}`)
           }
+          throw ex
+        }
+      }
+    },
+    async requestGroupsFromServer({commit, state}, options) {
+      const mutationFunction = 'storeAddGroups'
+      let session = await _checkSession.call(this, state, options)
+      if (!session) {
+        commit(mutationFunction, []) // clear out existing groups
+        return
+      }
+
+      try {
+        const apiPath = `/api/groups${options.requestOptions.withMembers ? '?withMembers=1' : ''}`
+        await _requestDataFromServer.call(this, commit, apiPath, mutationFunction, options)
+      } catch (ex) {
+        console.error(ex.message)
+        commit(mutationFunction, []) // clear out existing groups
+        throw ex
+      }
+    },
+    async requestGroupFromServer({commit, state}, options) {
+      options || (options = {})
+      options.requestOptions || (options.requestOptions = {})
+      const withMembers = options.requestOptions.withMembers
+      const groupId = options.requestOptions.groupId
+      if (groupId === undefined) {
+        throw new Error('GroupId missing in options')
+      }
+      const loginOptions = _.pick(options, ['$session', '$route', '$router'])
+      if (loginOptions.$session.exists()) {
+        _extractAccessRights(state, loginOptions.$session.get('accessRights'))
+      } else {
+        console.log('requestGroupFromServer: not logged in => tryLoginWithToken')
+        const haveSession = await this.dispatch('tryLoginWithToken', options)
+        if (!haveSession) {
+          commit('storeRemoveGroup', groupId) // remove group from store
+          return
+        }
+      }
+      const self = this
+      let at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
+      let config = {headers: {'Authorization': 'bearer ' + at}}
+      const apiPath = `/api/groups/${groupId}${withMembers ? '?withMembers=1' : ''}`
+      try {
+        let response = await axios.get(apiPath, config)
+        if (state.groups[response.data.id]) {
+          commit('storeAddSingleGroup', response.data)
+        } else {
+          commit('storeAddSingleGroup', response.data)
+        }
+      } catch (ex) {
+        const res = ex.response
+        if (res.status === 401) {
+          const haveSession = await self.dispatch('tryLoginWithToken', options)
+          if (haveSession) {
+            at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
+            config = {headers: {'Authorization': 'bearer ' + at}}
+            const response = await axios.get(apiPath, config)
+            if (state.groups[response.data.id]) {
+              commit('storeAddSingleGroup', response.data)
+            } else {
+              commit('storeAddSingleGroup', response.data)
+            }
+          } else {
+            commit('storeRemoveGroup', groupId) // remove group from store
+          }
+        } else {
+          if (res.data) {
+            console.log(`Error while retrieving group ${groupId}: ${res.data.error}`)
+          } else {
+            console.log(`Error while retrieving group ${groupId}: ${res}`)
+          }
+          commit('storeRemoveGroup', groupId) // remove group from store
+          throw ex
+        }
+      }
+    },
+    async createGroupAtServer({commit, state}, options) {
+      const loginOptions = _.pick(options, ['$session', '$route', '$router'])
+      if (!loginOptions.$session.exists()) {
+        const haveSession = await this.dispatch('tryLoginWithToken', options)
+        if (!haveSession) {
+          return // tryLoginWithToken redirected to /login
+        }
+      }
+      const at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
+      const config = {headers: {'Authorization': 'bearer ' + at}}
+      const data = {
+        id: options.id,
+        name: options.name,
+        description: options.description,
+        responsible: options.responsible
+      }
+      try {
+        const response = await axios.post(`/api/groups`, data, config)
+        if (response.status === 200) {
+          const id = response.data.id
+          console.log('Group created at server with id ' + id)
+          commit('storeAddSingleGroup', {
+            id: id,
+            name: response.data.name,
+            description: response.data.description,
+            responsible: response.data.responsible
+          })
+        } else {
+          throw new Error(response.statusText)
+        }
+      } catch (ex) {
+        console.log('Creating group at server failed')
+        throw ex
+      }
+    },
+    async deleteGroupAtServer({commit, state}, options) {
+      const groupId = options.groupId
+      if (options.$session.exists()) {
+        const at = options.$session.get('accessToken') + '.' + btoa(options.$session.get('username'))
+        const config = {headers: {'Authorization': 'bearer ' + at}}
+        try {
+          await axios.delete(`/api/groups/${groupId}`, config)
+          commit('storeRemoveGroup', groupId)
+        } catch (ex) {
+          console.log('Deleting group at server failed')
+          throw ex
+        }
+      } else {
+        throw new Error('Can\'t delete group without being logged in')
+      }
+    },
+    async updateGroupAtServer({commit, state}, options) {
+      const self = this
+      const loginOptions = _.pick(options, ['$session', '$route', '$router'])
+      if (loginOptions.$session.exists()) {
+        _extractAccessRights(state, loginOptions.$session.get('accessRights'))
+      } else {
+        console.log('updateGroupAtServer: not logged in => tryLoginWithToken')
+        const haveSession = await this.dispatch('tryLoginWithToken', options)
+        if (!haveSession) {
+          return // tryLoginWithToken redirected to /login
+        }
+      }
+
+      let at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
+      let config = {headers: {'Authorization': 'bearer ' + at}}
+      const apiPath = `/api/groups/${state.groupId}`
+      const updateData = options.requestOptions.updateData
+      try {
+        console.log(`Saving group ${state.groupId}: ${JSON.stringify(options.updateData)}`)
+        await axios.put(apiPath, updateData, config)
+      } catch (ex) {
+        if (ex.response) {
+          const res = ex.response
+          if (res.status === 401) {
+            const haveSession = await self.dispatch('tryLoginWithToken', options)
+            if (haveSession) {
+              at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
+              config = {headers: {'Authorization': 'bearer ' + at}}
+              await axios.put(apiPath, updateData, config)
+            } else {
+              console.log('Warning')
+            }
+          } else {
+            if (res.data) {
+              console.log(`Error while updating group ${state.groupId}: ${res.data.error}`)
+            } else {
+              console.log(`Error while retrieving group ${state.groupId}: ${res}`)
+            }
+            throw ex
+          }
+        } else {
+          console.log(`Error while retrieving group ${state.groupId}: ${ex}`)
           throw ex
         }
       }
