@@ -64,8 +64,9 @@ const router = new Router({
       component: ManageGroups
     },
     {
-      path: '/managegroup',
+      path: '/managegroup/:groupId',
       name: 'ManageGroup',
+      props: true,
       component: ManageGroup
     },
     {

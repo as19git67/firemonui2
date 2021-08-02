@@ -507,7 +507,37 @@ export default new Vuex.Store({
         _updateHaveActiveJob(state)
       }
     },
+    storeAddGroups: function (state, data) {
+      state.groups = {}
+      state.groupsAsList = []
+      _.each(data, function (group) {
+        _addAGroup(state, group)
+      })
+    },
     storeAddSingleGroup: function (state, group) {
+      if (group.id === undefined) {
+        throw new Error('group.id is undefined')
+      }
+      if (group.name === undefined) {
+        throw new Error('group.name is undefined')
+      }
+      if (typeof group.id === 'number') {
+        group.id = group.id.toString()
+      }
+      _.pullAllBy(state.groupsAsList, [group], 'id') // remove existing group with that id
+      _addAGroup(state, group)
+    },
+    storeRemoveGroup: function (state, id) {
+      if (id === undefined) {
+        throw new Error('group id is undefined')
+      }
+      if (typeof id === 'number') {
+        id = id.toString()
+      }
+      _.pullAllBy(state.groupsAsList, [{id:id}], 'id') // remove existing group with that id
+      delete state.groups[id];
+    },
+    storeUpdateGroup: function (state, group) {
       if (group.id === undefined) {
         throw new Error('group.id is undefined')
       }
@@ -617,7 +647,11 @@ export default new Vuex.Store({
       } else {
         return {}
       }
-    }
+    },
+    groupsList(state) {
+      return state.groupsAsList
+    },
+    groupById: state => groupId => state.groups[groupId],
   },
   actions: {
     async tryLoginWithToken({commit, state}, options) {
@@ -913,7 +947,7 @@ export default new Vuex.Store({
       const apiPath = `/api/jobs/${state.jobId}`
       const updateData = options.requestOptions.updateData
       try {
-        console.log(`Saving job ${state.jobId}: ${JSON.stringify(options.updateData)}`)
+        //console.log(`Saving job ${state.jobId}: ${JSON.stringify(options.requestOptions.updateData)}`)
         await axios.put(apiPath, updateData, config)
       } catch (ex) {
         if (ex.response) {
@@ -1143,7 +1177,7 @@ export default new Vuex.Store({
         id: options.id,
         name: options.name,
         description: options.description,
-        responsible: options.responsible
+        responsibleEmail: options.responsibleEmail
       }
       try {
         const response = await axios.post(`/api/groups`, data, config)
@@ -1154,7 +1188,7 @@ export default new Vuex.Store({
             id: id,
             name: response.data.name,
             description: response.data.description,
-            responsible: response.data.responsible
+            responsibleEmail: response.data.responsibleEmail
           })
         } else {
           throw new Error(response.statusText)
@@ -1195,11 +1229,12 @@ export default new Vuex.Store({
 
       let at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
       let config = {headers: {'Authorization': 'bearer ' + at}}
-      const apiPath = `/api/groups/${state.groupId}`
       const updateData = options.requestOptions.updateData
+      const apiPath = `/api/groups/${options.requestOptions.groupId}`
       try {
-        console.log(`Saving group ${state.groupId}: ${JSON.stringify(options.updateData)}`)
-        await axios.put(apiPath, updateData, config)
+        //console.log(`Saving group ${state.groupId}: ${JSON.stringify(options.requestOptions.updateData)}`)
+        const result = await axios.put(apiPath, updateData, config)
+        commit('storeUpdateGroup', result.data)
       } catch (ex) {
         if (ex.response) {
           const res = ex.response
@@ -1208,7 +1243,8 @@ export default new Vuex.Store({
             if (haveSession) {
               at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
               config = {headers: {'Authorization': 'bearer ' + at}}
-              await axios.put(apiPath, updateData, config)
+              const result = await axios.put(apiPath, updateData, config)
+              commit('storeUpdateGroup', result.data)
             } else {
               console.log('Warning')
             }
