@@ -652,6 +652,14 @@ export default new Vuex.Store({
       return state.groupsAsList
     },
     groupById: state => groupId => state.groups[groupId],
+    groupMembersByGroupId: state => groupId => {
+      const group = state.groups[groupId]
+      if (group) {
+        return []; // todo
+      } else {
+        return [];
+      }
+    }
   },
   actions: {
     async tryLoginWithToken({commit, state}, options) {
@@ -1261,6 +1269,23 @@ export default new Vuex.Store({
           throw ex
         }
       }
-    }
+    },
+    async requestMembersFromServer({commit, state}, options) {
+      const mutationFunction = 'storeAddMembers'
+      let session = await _checkSession.call(this, state, options)
+      if (!session) {
+        commit(mutationFunction, []) // clear out existing groups
+        return
+      }
+
+      try {
+        const apiPath = `/api/members${options.requestOptions.forGroupId ? '?forGroup=' + options.requestOptions.forGroupId : ''}`
+        await _requestDataFromServer.call(this, commit, apiPath, mutationFunction, options)
+      } catch (ex) {
+        console.error(ex.message)
+        commit(mutationFunction, []) // clear out existing members
+        throw ex
+      }
+    },
   }
 })
