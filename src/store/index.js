@@ -296,6 +296,11 @@ function _addAGroup(state, group) {
   state.groupsAsList.push(group)
 }
 
+function _addAMember(state, member) {
+  state.members[member.id] = member
+  state.membersAsList.push(member)
+}
+
 async function _requestDataFromServer(commit, apiPath, mutationFunction, options) {
   const self = this
   let session = options.$session
@@ -354,6 +359,8 @@ export default new Vuex.Store({
     currentJobAttendeesCount: 0,
     groups: {},
     groupsAsList: [],
+    members: {},
+    membersAsList: [],
     staff: {},
     savingEnabled: false,
     haveDataToSave: false,
@@ -534,7 +541,7 @@ export default new Vuex.Store({
       if (typeof id === 'number') {
         id = id.toString()
       }
-      _.pullAllBy(state.groupsAsList, [{id:id}], 'id') // remove existing group with that id
+      _.pullAllBy(state.groupsAsList, [{id: id}], 'id') // remove existing group with that id
       delete state.groups[id];
     },
     storeUpdateGroup: function (state, group) {
@@ -549,6 +556,27 @@ export default new Vuex.Store({
       }
       _.pullAllBy(state.groupsAsList, [group], 'id') // remove existing group with that id
       _addAGroup(state, group)
+    },
+    storeAddSingleMember: function (state, member) {
+      if (member.id === undefined) {
+        throw new Error('member.id is undefined')
+      }
+      if (typeof member.id === 'number') {
+        member.id = member.id.toString()
+      }
+      _.pullAllBy(state.membersAsList, [member], 'id') // remove existing member with that id
+      _addAMember(state, member)
+    },
+    storeRemoveMember: function (state, memberId) {
+      delete state.members[memberId]
+      state.membersAsList = _.map(state.members, function (m) {
+        return m
+      })
+    },
+    storeUpdateMember: function (state, data) {
+      // assign the new values
+      let member = state.members[data.id]
+      _.assignIn(member, data)
     },
     SOCKET_ONOPEN(state, event) {
       Vue.prototype.$socket = event.currentTarget
@@ -659,7 +687,11 @@ export default new Vuex.Store({
       } else {
         return [];
       }
-    }
+    },
+    membersList(state) {
+      return state.membersAsList
+    },
+    memberById: state => memberId => state.members[memberId],
   },
   actions: {
     async tryLoginWithToken({commit, state}, options) {
@@ -1284,6 +1316,41 @@ export default new Vuex.Store({
       } catch (ex) {
         console.error(ex.message)
         commit(mutationFunction, []) // clear out existing members
+        throw ex
+      }
+    },
+    async addMembersAtServer({commit, state}, options) {
+      const loginOptions = _.pick(options, ['$session', '$route', '$router'])
+      if (!loginOptions.$session.exists()) {
+        const haveSession = await this.dispatch('tryLoginWithToken', options)
+        if (!haveSession) {
+          return // tryLoginWithToken redirected to /login
+        }
+      }
+      const at = loginOptions.$session.get('accessToken') + '.' + btoa(loginOptions.$session.get('username'))
+      const config = {headers: {'Authorization': 'bearer ' + at}}
+      const data = {members: options.members}
+      try {
+        const response = await axios.post(`/api/members`, data, config)
+        if (response.status === 200) {
+          const addedMembers = response.data
+          if (_.isArray(addedMembers)) {
+            for (const addedMember of addedMembers) {
+              console.log('Member created at server with id ' + addedMember.id)
+              commit('storeAddSingleMember', {
+                id: addedMember.id,
+                lastname: addedMember.lastname,
+                firstname: addedMember.firstname,
+                mobile: addedMember.mobile,
+                email: addedMember.email
+              })
+            }
+          }
+        } else {
+          throw new Error(response.statusText)
+        }
+      } catch (ex) {
+        console.log('Creating job at server failed')
         throw ex
       }
     },

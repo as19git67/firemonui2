@@ -9,7 +9,7 @@
           <span class="title">Gruppe {{ group.id }} verwalten:
             <v-tooltip top>
               <template v-slot:activator="{ on }">
-                <v-btn icon @click="showStaffPicker" v-on="on">
+                <v-btn icon @click="showMemberPicker" v-on="on">
                   <v-icon title="weitere Personen hinzufügen">
                     mdi-account-plus
                   </v-icon>
@@ -43,7 +43,7 @@
                 />
               </v-flex>
               <v-flex align-self-center="true">
-                <v-btn icon @click="removePerson(mat.id)">
+                <v-btn icon @click="removeMember(member.id)">
                   <v-icon title="Person aus Gruppe entfernen">
                     mdi-playlist-minus
                   </v-icon>
@@ -54,6 +54,16 @@
         </v-layout>
       </v-container>
     </v-form>
+    <v-dialog v-model="memberPickerVisible" max-width="600px" scrollable :fullscreen="$vuetify.breakpoint.xsOnly">
+      <template>
+        <MemberPicker @close="memberPickerClose" @showMemberForm="showMemberForm"/>
+      </template>
+    </v-dialog>
+    <v-dialog v-model="memberFormVisible" max-width="600px" scrollable :fullscreen="$vuetify.breakpoint.xsOnly">
+      <template>
+        <MemberForm @saveMemberForm="saveMemberForm"/>
+      </template>
+    </v-dialog>
     <v-snackbar v-model="saveStatus" :top="false" dark color="info">
       Daten werden gespeichert...
     </v-snackbar>
@@ -66,27 +76,31 @@
 <script>
 import Toolbar from '@/components/Toolbar.vue'
 import {mapActions, mapMutations, mapGetters} from 'vuex'
+import MemberPicker from '@/components/MemberPicker'
+import MemberForm from '@/components/MemberForm'
 import _ from 'lodash'
-  import axios from 'axios'
 
-  export default {
-    name: 'ManageGroup',
-    components: {
-      Toolbar
-    },
-    data() {
-      return {
-        groupMembers: [],
-        waitingForData: false,
-        snackbar: false,
-        snackbarTimeout: 6000,
-        snackbarText: '',
-        snackbarColor: 'info',
-      }
+export default {
+  name: 'ManageGroup',
+  components: {
+    Toolbar, MemberPicker, MemberForm
+  },
+  data() {
+    return {
+      groupMembers: [],
+      memberPickerVisible: false,
+      memberFormVisible: false,
+      form: this.form,
+      loadStatus: false,
+      saveStatus: false,
+      snackbar: false,
+      snackbarTimeout: 6000,
+      snackbarText: '',
+      snackbarColor: 'info',
+    }
     },
     computed: {
       ...mapGetters({
-        haveDataToSave: 'haveDataToSave',
         groupById: 'groupById',
         groupMembersByGroupId: 'groupMembersByGroupId',
       }),
@@ -134,17 +148,71 @@ import _ from 'lodash'
     },
     methods: {
       ...mapActions([
+        'addMembersAtServer', // map `this.addMembersAtServer()` to `this.$store.dispatch('addMembersAtServer')`
       ]),
+      showMemberPicker() {
+        this.memberPickerVisible = true
+      },
+      memberPickerClose(payload) {
+        this.memberPickerVisible = false
+        for (let i = 0; i < payload.length; i++) {
+          const pickedMember = payload[i]
+          this.addMember(pickedMember)
+        }
+      },
+      showMemberForm() {
+        this.memberFormVisible = true
+      },
+      saveMemberForm(member) {
+        this.memberFormVisible = false
+        this.addMember(member)
+      },
+      saveAndNewMemberForm(member) {
+        this.addMember(member)
+      },
+      addMember(member) {
+        const memberSortedById = _.sortBy(this.groupMembers, 'id')
+        const memberWithMinId = _.first(memberSortedById)
+        let id = -1;
+        if (memberWithMinId !== undefined) {
+          id = memberWithMinId >= 0 ? -1 : memberWithMinId.id - 1;
+        }
+
+        // negative id means not yet saved at server
+        let m = {
+          id: id,
+          lastname: member.lastname,
+          firstname: member.firstname,
+          mobile: member.mobile,
+          email: member.email,
+        }
+        this.saveStatus = true
+        this.addMembersAtServer({$session: this.$session, $route: this.$route, $router: this.$router, members: [m]})
+        .then(() => {
+          this.saveStatus = false
+        })
+        .catch(reason => {
+          this.saveStatus = false
+          this._handleError(reason, 'Neue Mitglieder speichern fehlgeschlagen')
+        })
+
+      },
+      removeMember(id) {
+        let removeIndex = -1
+        for (let i = 0; i < this.groupMembers.length; i++) {
+          if (this.groupMembers[i].id === id) {
+            removeIndex = i
+            break
+          }
+        }
+        if (removeIndex >= 0) {
+          this.groupMembers.splice(removeIndex, 1)
+        }
+      },
+
     }
   }
 </script>
 
 <style scoped>
-  .email {
-    font-style: italic;
-  }
-
-  .keystate {
-    font-style: italic;
-  }
 </style>
