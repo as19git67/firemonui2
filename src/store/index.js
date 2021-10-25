@@ -1235,7 +1235,8 @@ export default new Vuex.Store({
         }
       } catch (ex) {
         console.log('Creating group at server failed')
-        throw ex
+        console.log(ex.response.data)
+        throw new Error(ex.response.data)
       }
     },
     async deleteGroupAtServer({commit, state}, options) {
