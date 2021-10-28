@@ -525,9 +525,6 @@ export default new Vuex.Store({
       if (group.id === undefined) {
         throw new Error('group.id is undefined')
       }
-      if (group.name === undefined) {
-        throw new Error('group.name is undefined')
-      }
       if (typeof group.id === 'number') {
         group.id = group.id.toString()
       }
@@ -547,9 +544,6 @@ export default new Vuex.Store({
     storeUpdateGroup: function (state, group) {
       if (group.id === undefined) {
         throw new Error('group.id is undefined')
-      }
-      if (group.name === undefined) {
-        throw new Error('group.name is undefined')
       }
       if (typeof group.id === 'number') {
         group.id = group.id.toString()
@@ -1215,9 +1209,10 @@ export default new Vuex.Store({
       const config = {headers: {'Authorization': 'bearer ' + at}}
       const data = {
         id: options.id,
-        name: options.name,
         description: options.description,
-        responsibleEmail: options.responsibleEmail
+        responsibleEmail: options.responsibleEmail,
+        senderEmail: options.senderEmail,
+        senderSMS: options.senderSMS,
       }
       try {
         const response = await axios.post(`/api/groups`, data, config)
@@ -1226,9 +1221,11 @@ export default new Vuex.Store({
           console.log('Group created at server with id ' + id)
           commit('storeAddSingleGroup', {
             id: id,
-            name: response.data.name,
             description: response.data.description,
-            responsibleEmail: response.data.responsibleEmail
+            responsibleEmail: response.data.responsibleEmail,
+            senderEmail: response.data.senderEmail,
+            senderSMS: response.data.senderSMS,
+
           })
         } else {
           throw new Error(response.statusText)

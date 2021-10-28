@@ -80,11 +80,19 @@ export default {
       },
       headers: [
         {text: 'ID', align: 'left', sortable: true, value: 'id'},
-        {text: 'Name', align: 'left', sortable: true, value: 'name'},
         {text: 'Beschreibung', align: 'left', sortable: true, value: 'description'},
-        {text: 'Email des Gruppenverantwortlichen', sortable: true, value: 'responsibleEmail'},
+        {text: 'Verantwortlicher (email)', sortable: true, value: 'responsibleEmail'},
+        {text: 'Absender (email)', align: 'left', sortable: true, value: 'senderEmail'},
+        {text: 'Absender (SMS)', align: 'left', sortable: true, value: 'senderSMS'},
         {text: 'Aktionen', sortable: false, value: 'actions'}
-      ]
+      ],
+      groupEditFormDef: [
+        {key: 'id', label: 'ID'},
+        {key: 'description', label: 'Beschreibung'},
+        {key: 'responsibleEmail', label: 'Verantwortlicher (Email)'},
+        {key: 'senderEmail', label: 'Absender (Email)'},
+        {key: 'senderSMS', label: 'Absender (SMS, max. 11 Zeichen, A-Z, a-z, 0-9)'},
+      ],
     }
   },
   computed: {
@@ -135,30 +143,30 @@ export default {
       const formData = await this.$modalDialogForm({
         message: 'Die ID der Gruppe wird ggf. für die Alarmierung verwendet und muss dann der 5-Ton-Folge entsprechen. Sie kann später nicht mehr geändert werden.',
         title: 'Neue Gruppe erzeugen:',
-        form: [{key: 'id', label: 'ID'}, {key: 'name', label: 'Name'}, {
-          key: 'description',
-          label: 'Beschreibung'
-        }, {key: 'responsibleEmail', label: 'Email des Gruppenverantwortlichen'}],
+        form: this.groupEditFormDef,
         btnTextOk: 'Speichern'
       })
       if (formData.length > 0) {
         this.loading = true
         let field = _.find(formData, {key: 'id'})
         const id = field.value
-        field = _.find(formData, {key: 'name'})
-        const name = field.value
         field = _.find(formData, {key: 'description'})
         const description = field.value
         field = _.find(formData, {key: 'responsibleEmail'})
         const responsibleEmail = field.value
+        field = _.find(formData, {key: 'senderEmail'})
+        const senderEmail = field.value
+        field = _.find(formData, {key: 'senderSMS'})
+        const senderSMS = field.value
         this.createGroupAtServer({
           $session: this.$session,
           $route: this.$route,
           $router: this.$router,
           id: id,
-          name: name,
           description: description,
-          responsibleEmail: responsibleEmail
+          responsibleEmail: responsibleEmail,
+          senderEmail: senderEmail,
+          senderSMS: senderSMS,
         })
         .then(() => {
           this.loading = false
@@ -172,29 +180,38 @@ export default {
     async editGroup(id) {
       let group = this.groupById(id)
       if (group) {
+        let formDef = [];
+        _.each(this.groupEditFormDef, (def) => {
+          if (def.key !== 'id') {
+            formDef.push({key: def.key, label: def.label, value: group[def.key]})
+          }
+        })
         const formData = await this.$modalDialogForm({
           message: ' ',
           title: `Gruppe mit ID ${group.id} ändern:`,
-          form: [{key: 'name', label: 'Name', value: group.name}, {
-            key: 'description', label: 'Beschreibung', value: group.description
-          }, {key: 'responsibleEmail', label: 'Email des Gruppenverantwortlichen', value: group.responsibleEmail}],
+          form: formDef,
           btnTextOk: 'Speichern'
         })
         if (formData.length > 0) {
           this.loading = true
-          let field = _.find(formData, {key: 'name'})
-          const name = field.value
-          field = _.find(formData, {key: 'description'})
+          let field = _.find(formData, {key: 'description'})
           const description = field.value
           field = _.find(formData, {key: 'responsibleEmail'})
           const responsibleEmail = field.value
+          field = _.find(formData, {key: 'senderEmail'})
+          const senderEmail = field.value
+          field = _.find(formData, {key: 'senderSMS'})
+          const senderSMS = field.value
           this.updateGroupAtServer({
             $session: this.$session,
             $route: this.$route,
             $router: this.$router,
             requestOptions: {
               updateData: {
-                name: name, description: description, responsibleEmail: responsibleEmail
+                description: description,
+                responsibleEmail: responsibleEmail,
+                senderEmail: senderEmail,
+                senderSMS: senderSMS
               },
               groupId: id
             }
@@ -212,8 +229,9 @@ export default {
 
     async deleteGroup(id) {
       if (!this.loading) {
-        let no = await this.$confirm(`Soll die Gruppe "${name}" wirklich gelöscht werden?`,
-          {title: 'Benutzer löschen', buttonTrueText: 'Nein', buttonFalseText: 'Ja'})
+        let group = this.groupById(id)
+        let no = await this.$confirm(`Soll die Gruppe ${id} (${group.name}) wirklich gelöscht werden? Dieser Vorgang kann nicht rückgängig gemacht werden.`,
+          {title: `Gruppe ${id} löschen`, buttonTrueText: 'Nein', buttonFalseText: 'Ja'})
         if (!no) {
           this.loading = true
           let at = this.$session.get('accessToken') + '.' + btoa(this.$session.get('username'))
