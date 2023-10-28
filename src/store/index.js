@@ -572,6 +572,14 @@ export default new Vuex.Store({
       let member = state.members[data.id]
       _.assignIn(member, data)
     },
+    storeAddMembers: function (state, data) {
+      state.members = {}
+      state.membersAsList = []
+      _.each(data, function (member) {
+        _addAMember(state, member)
+      })
+    },
+
     SOCKET_ONOPEN(state, event) {
       Vue.prototype.$socket = event.currentTarget
       state.socket.isConnected = true

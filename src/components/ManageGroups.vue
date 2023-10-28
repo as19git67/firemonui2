@@ -128,6 +128,7 @@ export default {
   methods: {
     ...mapActions([
       'requestGroupsFromServer', // map `this.requestGroupsFromServer()` to `this.$store.dispatch('requestGroupsFromServer')`
+      'requestMembersFromServer', // map `this.requestMembersFromServer()` to `this.$store.dispatch('requestMembersFromServer')`
       'createGroupAtServer', // map `this.createGroupAtServer()` to `this.$store.dispatch('createGroupAtServer')`
       'deleteGroupAtServer', // map `this.deleteGroupAtServer()` to `this.$store.dispatch('deleteGroupAtServer')`
       'updateGroupAtServer', // map `this.updateGroupAtServer()` to `this.$store.dispatch('updateGroupAtServer')`
@@ -263,17 +264,30 @@ export default {
       }
     },
     async getGroups() {
-      this.requestGroupsFromServer({
-        $session: this.$session,
-        $route: this.$route,
-        $router: this.$router,
-        requestOptions: {withMembers: false}
-      })
-      .then(() => {
+      try {
+        await this.requestGroupsFromServer({
+          $session: this.$session,
+          $route: this.$route,
+          $router: this.$router,
+          requestOptions: {withMembers: false}
+        })
         this.loading = false
-      }).catch(reason => {
-        this._handleError(reason, 'Lesen der Gruppenliste fehlgeschlagen')
-      })
+      }
+      catch(ex) {
+        this._handleError(ex, 'Lesen der Gruppenliste fehlgeschlagen')
+      }
+      try {
+        await this.requestMembersFromServer({
+          $session: this.$session,
+          $route: this.$route,
+          $router: this.$router,
+          requestOptions: {}
+        })
+        this.loading = false
+      }
+      catch(ex) {
+        this._handleError(ex, 'Lesen der Mitgliederliste fehlgeschlagen')
+      }
     }
   }
 }

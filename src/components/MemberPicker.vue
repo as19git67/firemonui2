@@ -4,7 +4,8 @@
       <v-flex>
         <v-card class="elevation-12">
           <v-toolbar dark color="primary">
-            <v-toolbar-title>Person auswählen oder
+            <v-toolbar-title>
+              Person auswählen oder
               <v-tooltip top>
                 <template v-slot:activator="{ on }">
                   <v-btn icon @click="showMemberForm" v-on="on">
@@ -15,7 +16,6 @@
                 </template>
                 <span>Personen hinzufügen</span>
               </v-tooltip>
-
             </v-toolbar-title>
 
             <v-spacer/>
@@ -77,20 +77,19 @@ export default {
   },
   computed: {
     ...mapGetters({
+      membersList: 'membersList',
       filteredMemberList: 'filteredMemberList'
     }),
     filteredMemberList() {
-      return this.materialTypes ? _.map(_.filter(this.materialTypes, mt => {
+      return this.membersList ? _.map(_.filter(this.membersList, m => {
         return this.filter.trim().length === 0 ||
-          (mt.name && mt.name.trim().toLowerCase().indexOf(this.filter.trim().toLowerCase()) > -1) ||
-          (mt.notes && mt.notes.trim().toLowerCase().indexOf(this.filter.trim().toLowerCase()) > -1)
-      }), mt => {
+          (m.lastname && m.lastname.trim().toLowerCase().indexOf(this.filter.trim().toLowerCase()) > -1) ||
+          (m.firstname && m.firstname.trim().toLowerCase().indexOf(this.filter.trim().toLowerCase()) > -1)
+      }), m => {
         return {
-          id: mt.id,
-          type: mt.type,
-          name: mt.name,
-          notes: mt.notes,
-          metadata: _.clone(this.materialMetadata[mt.type])
+          id: m.id,
+          lastname: m.lastname,
+          firstname: m.firstname,
         }
       }) : []
     }
