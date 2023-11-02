@@ -14,7 +14,7 @@
   export default {
     name: 'App',
     computed: {
-      ...mapGetters({jobsList: 'jobsList', haveDataToSave: 'haveDataToSave'})
+      ...mapGetters({jobsList: 'jobsList', haveDataToSave: 'haveDataToSave', savingData: 'savingData'})
     },
     created () {
       moment.locale('de')
@@ -45,7 +45,7 @@
               break
             case 'updatedJob':
               // console.log('Server pushes jobs')
-              if (!this.haveDataToSave) {
+              if (!this.haveDataToSave && !this.savingData) {
                 if (messageParts.length > 1) {
                   jobId = messageParts[1]
                   this.requestJobFromServer({
