@@ -348,6 +348,7 @@ export default new Vuex.Store({
     staff: {},
     savingEnabled: false,
     haveDataToSave: false,
+    savingData: false,
     appName: 'Alarm Monitor',
     socket: {
       isConnected: false,
@@ -359,6 +360,10 @@ export default new Vuex.Store({
     setHaveDataToSave: function (state, haveDataToSave) {
       state.haveDataToSave = !!haveDataToSave
       console.log('have data to save: ' + state.haveDataToSave)
+    },
+    setSavingData: function (state, savingData) {
+      state.savingData = !!savingData
+      console.log('saving data: ' + state.savingData)
     },
     storeAddMaterialMeta: function (state, data) {
       if (_.isPlainObject(data)) {
@@ -526,6 +531,10 @@ export default new Vuex.Store({
     haveDataToSave (state) {
       console.log('ASK for have data to save: ' + state.haveDataToSave)
       return state.haveDataToSave
+    },
+    savingData (state) {
+      console.log('ASK for saving data: ' + state.savingData)
+      return state.savingData
     },
     appName (state) {
       return state.appName
@@ -884,7 +893,7 @@ export default new Vuex.Store({
       const apiPath = `/api/jobs/${state.jobId}`
       const updateData = options.requestOptions.updateData
       try {
-        console.log(`Saving job ${state.jobId}: ${JSON.stringify(options.updateData)}`)
+        console.log(`Saving job ${state.jobId}: ${JSON.stringify(updateData)}`)
         await axios.put(apiPath, updateData, config)
       } catch (ex) {
         if (ex.response) {
@@ -902,12 +911,12 @@ export default new Vuex.Store({
             if (res.data) {
               console.log(`Error while updating job ${state.jobId}: ${res.data.error}`)
             } else {
-              console.log(`Error while retrieving job ${state.jobId}: ${res}`)
+              console.log(`Error while updating job ${state.jobId}: ${res}`)
             }
             throw ex
           }
         } else {
-          console.log(`Error while retrieving job ${state.jobId}: ${ex}`)
+          console.log(`Error while saving job ${state.jobId}: ${ex}`)
           throw ex
         }
       }

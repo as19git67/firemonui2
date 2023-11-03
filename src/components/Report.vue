@@ -179,9 +179,14 @@
         <MaterialPicker @close="materialPickerClose"/>
       </template>
     </v-dialog>
-    <v-snackbar :value="haveDataToSave" :top="false" :timeout="0" dark color="info">
-      Daten werden automatisch gespeichert...
+    <v-snackbar :value="savingData" :top="false" :timeout="0" dark color="info">
+      Daten speichern...
     </v-snackbar>
+<!--
+    <v-snackbar :value="haveDataToSave" :top="false" :timeout="0" dark color="info">
+      Daten wurden geändert und werden später automatisch gespeichert...
+    </v-snackbar>
+-->
     <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
       {{errorSnackbarText}}
       <v-btn @click="errorSnackbar = false">
@@ -320,6 +325,7 @@
     computed: {
       ...mapGetters({
         haveDataToSave: 'haveDataToSave',
+        savingData: 'savingData',
         currentJob: 'currentJob',
         currentJobId: 'currentJobId',
         attendeesCountOfCurrentJob: 'attendeesCountOfCurrentJob',
@@ -451,7 +457,7 @@
                 } // end date/time check
               } else {
                 if (value !== oldValue) {
-                  // console.log(`${key} changed from ${oldValue} to "${value}"`)
+                  console.log(`${key} changed from ${oldValue} to "${value}"`)
                   self.updateData[key] = value
                   self.setHaveDataToSave(true)
                   self._throttledSaveJobData()
@@ -461,7 +467,7 @@
               if (_.indexOf(self.jobReportKeys, key) >= 0) {
                 let oldValue = job.report[key]
                 if (value !== oldValue) {
-                  // console.log(`${key} changed from ${oldValue} to "${value}"`)
+                  console.log(`${key} changed from ${oldValue} to "${value}"`)
                   self.updateData.report[key] = value
                   self.setHaveDataToSave(true)
                   self._throttledSaveJobData()
@@ -478,7 +484,10 @@
             this.$router.push('/')
           } else {
             let job = this.currentJob
-            this.dateTimeSplits = [{list: this.jobKeys, source: job}, {list: this.jobReportKeys, source: job.report}]
+            this.dateTimeSplits = [
+              {list: this.jobKeys, source: job, updateData: this.updateData},
+              {list: this.jobReportKeys, source: job.report, updateData: this.updateData.report}
+            ]
             console.log('currentJob has been changed -> _setFormFields')
             this._setFormFields()
             this._createAttendeesSelectionList()
@@ -543,7 +552,10 @@
             })
           }
         }
-        this.dateTimeSplits = [{list: this.jobKeys, source: job}, {list: this.jobReportKeys, source: job.report}]
+        this.dateTimeSplits = [
+          {list: this.jobKeys, source: job, updateData: this.updateData},
+          {list: this.jobReportKeys, source: job.report, updateData: this.updateData.report}
+        ]
         console.log('component created -> _setFormFields')
         this._setFormFields()
         this._createAttendeesSelectionList()
@@ -555,9 +567,11 @@
     },
     methods: {
       ...mapActions([
-        'updateJobAtServer' // map `this.updateJobAtServer()` to `this.$store.dispatch('updateJobAtServer')`
+        'updateJobAtServer', // map `this.updateJobAtServer()` to `this.$store.dispatch('updateJobAtServer')`
+        'requestJobFromServer'
       ]),
       ...mapMutations(['setHaveDataToSave', 'setHaveDataToSave']),
+      ...mapMutations(['setSavingData', 'setSavingData']),
       _handleError: function (ex, snackText) {
         const errorMessage = ex.response && ex.response.data ? ex.response.data : ex.message
         this.errorSnackbarText = `${snackText}: ${errorMessage}`
@@ -763,19 +777,22 @@
         }
       },
       _setFormFields: function () {
-        const self = this
-        _.each(this.dateTimeSplits, function (o) {
-          _.each(o.list, function (keyInSource) {
-            self._setFormFieldFormatted(keyInSource, o.source)
+        _.each(this.dateTimeSplits, (o) => {
+          _.each(o.list, (keyInSource) => {
+            // if o.updateData[keyInSource] has a value then don't update the form field, because user edited already
+            const updateDataValue = o.updateData[keyInSource];
+            if (updateDataValue === undefined) {
+              this._setFormFieldFormatted(keyInSource, o.source)
+            } else {
+              console.log(`not setting form field ${keyInSource}, because updateData has value: ${updateDataValue}`)
+            }
           })
         })
       },
       _throttledSaveJobData: _.debounce(async function () {
         console.log('Calling debounced saveJobData')
-        const self = this
-        const loading = this.loading
         const currentJobId = this.currentJobId
-        if (!loading && currentJobId !== undefined) {
+        if (!this.savingData && currentJobId !== undefined) {
           const currentJob = this.currentJob
           if (currentJob && currentJob.readonly) {
             // not saving readonly job
@@ -783,29 +800,43 @@
           }
 
           this.error = ''
-          this.loading = true
+          this.setSavingData(true)
 
-          const options = {
+          const updateOptions = {
             $session: this.$session,
             $route: this.$route,
             $router: this.$router,
             requestOptions: {
-              updateData: this.updateData,
+              updateData: _.cloneDeep(this.updateData),
               jobId: this.currentJobId
+            }
+          }
+          this.updateData = {report: {}}
+
+          const requestOptions = {
+            $session: this.$session,
+            $route: this.$route,
+            $router: this.$router,
+            requestOptions: {
+              jobId: this.currentJobId,
+              withImages: false
             }
           }
 
           try {
-            await this.updateJobAtServer(options)
-            self.updateData = {report: {}}
+            console.log(`updateJobAtServer: ${JSON.stringify(updateOptions.requestOptions)}`)
+            await this.updateJobAtServer(updateOptions)
+            await this.requestJobFromServer(requestOptions)
+            this.setHaveDataToSave(false)
           } catch (ex) {
             this._handleError(ex, 'Fehler beim Speichern der Berichtsdaten')
           } finally {
-            self.loading = false
-            self.setHaveDataToSave(false)
+            setTimeout(() => {
+              this.setSavingData(false)
+            }, 2000);
           }
         }
-      }, 5000, {leading: false, trailing: true}),
+      }, 5000),
       _calculateDuration() {
         let re = /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/
         if (re.test(this.form.startTime) && re.test(this.form.endTime)) {
