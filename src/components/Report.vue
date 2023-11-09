@@ -89,7 +89,7 @@
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden"
+            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden:Minuten"
                           :readonly="true"/>
           </v-flex>
           <v-flex>
@@ -197,12 +197,12 @@
 </template>
 
 <script>
-  import _ from 'lodash'
-  import moment from 'moment'
-  import {mapGetters, mapMutations, mapActions} from 'vuex'
-  import MaterialPicker from '@/components/MaterialPicker'
+import _ from 'lodash'
+import moment from 'moment'
+import {mapActions, mapGetters, mapMutations} from 'vuex'
+import MaterialPicker from '@/components/MaterialPicker'
 
-  export default {
+export default {
     name: 'Report',
     components: {MaterialPicker},
     data: function () {
@@ -335,8 +335,18 @@
       })
     },
     watch: {
+      materialMetadata: {
+        handler: function () {
+          console.log(`materialList changed`)
+          this._fillFormFromReportData()
+        }
+      },
       materialList: {
         handler: function () {
+          if (!this.materialMetadata) {
+            console.log('materialList changed, but materialMetadata not loaded - ignoring')
+            return
+          }
           console.log(`materialList changed`)
           let job = this.currentJob
 
@@ -350,6 +360,9 @@
                   let reportValue = _.find(reportMaterial.values, repVal => {
                     return v.id === repVal.id
                   })
+                  if (reportValue === undefined) {
+                    return true;
+                  }
                   return v.value !== reportValue.value
                 })
                 return changedValue !== undefined
@@ -363,8 +376,8 @@
           if (job) {
             console.log(`Material in job ${job.id} changed`)
 
-            var removeIndexes = []
-            for (var i = 0; this.currentJob.report.materialList && i < this.currentJob.report.materialList.length; i++) {
+            const removeIndexes = []
+            for (let i = 0; this.currentJob.report.materialList && i < this.currentJob.report.materialList.length; i++) {
               const repMat = this.currentJob.report.materialList[i]
               const formMaterial = _.find(this.materialList, mat => {
                 return mat.id === repMat.id
@@ -512,54 +525,7 @@
       }
     },
     created() {
-      this.timeRegex = /^(\d{2}):(\d{2})(?::(\d{2}))?$/
-      this.updateData = {report: {}}
-      let job = this.currentJob
-      if (this.currentJob.id !== undefined) {
-        this.materialList = []
-        // migrate "old" material to new material list as generic material
-        if (this.currentJob.report.material) {
-          let migratedMaterial = {
-            id: 0,
-            matId: 'other',
-            name: 'Sonstiges',
-            category: 'generic',
-            values: [
-              {
-                id: 'text',
-                type: 'string',
-                value: this.currentJob.report.material
-              }
-            ]
-          }
-          this.materialList.push(migratedMaterial)
-          delete this.currentJob.report.material
-        } else {
-          if (this.currentJob.report.materialList) {
-            _.each(this.currentJob.report.materialList, m => {
-              if (m.id !== undefined && m.matId && m.category && this.materialMetadata[m.category]) {
-                m.metadata = _.clone(this.materialMetadata[m.category])
-                for (let i = 0; i < m.metadata.length; i++) {
-                  const meta = m.metadata[i]
-                  if (meta.id === m.values[i].id && meta.type === m.values[i].type) {
-                    m.values[i].label = meta.label
-                  } else {
-                    throw new Error('MaterialList metadata does not match values')
-                  }
-                }
-                this.materialList.push(_.cloneDeep(m))
-              }
-            })
-          }
-        }
-        this.dateTimeSplits = [
-          {list: this.jobKeys, source: job, updateData: this.updateData},
-          {list: this.jobReportKeys, source: job.report, updateData: this.updateData.report}
-        ]
-        console.log('component created -> _setFormFields')
-        this._setFormFields()
-        this._createAttendeesSelectionList()
-      }
+      this._fillFormFromReportData()
     },
     mounted() {
       this.dateFailure = false
@@ -572,6 +538,67 @@
       ]),
       ...mapMutations(['setHaveDataToSave', 'setHaveDataToSave']),
       ...mapMutations(['setSavingData', 'setSavingData']),
+      _fillFormFromReportData: function () {
+        if (!(this.currentJob && this.currentJob.report && Object.keys(this.materialMetadata).length > 0)) {
+          console.log('job or material metadata not available - skipping fillFormFromReportData')
+          return
+        }
+        this.timeRegex = /^(\d{2}):(\d{2})(?::(\d{2}))?$/
+        this.updateData = {report: {}}
+        let job = this.currentJob
+        if (this.currentJob.id !== undefined) {
+          this.materialList = []
+          // migrate "old" material to new material list as generic material
+          if (this.currentJob.report.material) {
+            let migratedMaterial = {
+              id: 0,
+              matId: 'other',
+              name: 'Sonstiges',
+              category: 'generic',
+              values: [
+                {
+                  id: 'text',
+                  type: 'string',
+                  value: this.currentJob.report.material
+                }
+              ]
+            }
+            this.materialList.push(migratedMaterial)
+            delete this.currentJob.report.material
+          } else {
+            if (this.currentJob.report.materialList) {
+              _.each(this.currentJob.report.materialList, m => {
+                const materialMetadatas = this.materialMetadata
+                const materialMetadata = materialMetadatas[m.category]
+                if (m.id !== undefined && m.matId && m.category && materialMetadata) {
+                  m.metadata = _.clone(materialMetadata)
+                  const values = [];
+                  for (let i = 0; i < m.metadata.length; i++) {
+                    const meta = m.metadata[i]
+                    const valueObj = _.find(m.values, {id: meta.id, type: meta.type})
+                    if (valueObj) {
+                      valueObj.label = meta.label
+                      values.push(valueObj);
+                    } else {
+                      values.push({label: meta.label, id: meta.id, type: meta.type})
+                    }
+                  }
+                  m.values = values;  // replace with list of valueObj
+                  this.materialList.push(_.cloneDeep(m))
+                }
+              })
+            }
+          }
+          this.dateTimeSplits = [
+            {list: this.jobKeys, source: job, updateData: this.updateData},
+            {list: this.jobReportKeys, source: job.report, updateData: this.updateData.report}
+          ]
+          console.log('component created -> _setFormFields')
+          this._setFormFields()
+          this._createAttendeesSelectionList()
+        }
+      },
+
       _handleError: function (ex, snackText) {
         const errorMessage = ex.response && ex.response.data ? ex.response.data : ex.message
         this.errorSnackbarText = `${snackText}: ${errorMessage}`
@@ -604,6 +631,20 @@
           this.setHaveDataToSave(true)
           this._throttledSaveJobData()
         }
+      },
+      _hoursAsString: function (duration) {
+        const hours = Math.floor(duration)
+        let rest = duration - hours
+        const minutes = Math.floor(rest * 60)
+        const hoursStr = hours.toLocaleString('de-DE', {
+          minimumIntegerDigits: 2,
+          useGrouping: false
+        });
+        const minutesStr = minutes.toLocaleString('de-DE', {
+          minimumIntegerDigits: 2,
+          useGrouping: false
+        });
+        return `${hoursStr}h ${minutesStr}m (${duration.toLocaleString('de-DE')}h)`
       },
       processDate: function (key, iDate, job, value) {
         const dateKey = key.substr(0, iDate)
@@ -641,7 +682,7 @@
             const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
-              this.form.duration = duration.toString()
+              this.form.duration = this._hoursAsString(duration)
               // update at server
             }
             this.updateData[dateKey] = newDate
@@ -683,7 +724,7 @@
             const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
-              this.form.duration = duration.toString()
+              this.form.duration = this._hoursAsString(duration)
               // update at server
             }
             this.updateData[timeKey] = newDateTime
@@ -693,9 +734,10 @@
         }
       },
       _createAttendeesSelectionList: function () {
-        this.attendeeList = _.map(_.sortBy(this.currentJob.attendees, 'lastname'), function (attendee) {
+        this.attendeeList =  _.map(_.sortBy(this.currentJob.attendees, 'lastname'), function (attendee) {
           return attendee.firstname + ' ' + attendee.lastname
         })
+        this.attendeeList.push('')
       },
       _setFormFieldIfChanged: function (newValue, formFieldName) {
         if (newValue !== this.form[formFieldName]) {
@@ -771,7 +813,12 @@
               time = sourceObj[dateKey]
               this._setFormTime(time, dateKey)
             } else {
-              this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
+              if (formFieldName === 'duration') {
+                const durationFormatted = this._hoursAsString(sourceObj[formFieldName])
+                this._setFormFieldIfChanged(durationFormatted, formFieldName)
+              } else {
+                this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
+              }
             }
           }
         }

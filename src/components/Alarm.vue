@@ -3,53 +3,63 @@
     <template>
       <Toolbar/>
     </template>
-    <v-tabs v-if="$vuetify.breakpoint.mdAndDown" v-model="active" background-color="yellow" slider-color="accent"
+    <v-tabs v-if="$vuetify.breakpoint.mdAndDown" v-model="activeTabIndex" background-color="yellow" slider-color="accent"
             class="mytabs">
-      <v-tab :key="0" :disabled="haveDataToSave" ripple @click="resize">
-        Einsatz
-      </v-tab>
-      <v-tab :key="1" :disabled="haveDataToSave" ripple @click="resize">
-        Karte
-      </v-tab>
-      <v-tab :key="3" :disabled="haveDataToSave" ripple>
-        Anwesenheit
-      </v-tab>
-      <v-tab :key="4" :disabled="haveDataToSave" ripple>
+      <v-tab :key="0" :disabled="haveDataToSave" ripple>
         Bericht
       </v-tab>
-      <v-tab-item :key="0" class="tabArea faxArea">
-        <template>
-          <Fax/>
-        </template>
-      </v-tab-item>
-      <v-tab-item :key="1" class="tabArea mapArea">
-        <template>
-          <Map/>
-        </template>
-      </v-tab-item>
-      <v-tab-item :key="3" class="tabArea">
-        <template>
-          <Attendees/>
-        </template>
-      </v-tab-item>
-      <v-tab-item :key="4" class="tabArea">
+      <v-tab :key="1" :disabled="haveDataToSave" ripple>
+        Anwesenheit
+      </v-tab>
+      <v-tab :key="2" :disabled="haveDataToSave" ripple @click="resize">
+        Einsatz
+      </v-tab>
+      <v-tab :key="3" :disabled="haveDataToSave" ripple @click="resize">
+        Karte
+      </v-tab>
+      <v-tab-item :key="0" class="tabArea">
         <template>
           <Report/>
         </template>
       </v-tab-item>
+      <v-tab-item :key="1" class="tabArea">
+        <template>
+          <Attendees/>
+        </template>
+      </v-tab-item>
+      <v-tab-item :key="2" class="tabArea faxArea">
+        <template>
+          <Fax/>
+        </template>
+      </v-tab-item>
+      <v-tab-item :key="3" class="tabArea mapArea">
+        <template>
+          <Map/>
+        </template>
+      </v-tab-item>
     </v-tabs>
-    <v-tabs v-if="$vuetify.breakpoint.lgAndUp" v-model="active" background-color="yellow" slider-color="accent"
+    <v-tabs v-if="$vuetify.breakpoint.lgAndUp" v-model="activeTabIndex" background-color="yellow" slider-color="accent"
             class="mytabs">
-      <v-tab :key="5" :disabled="haveDataToSave" ripple @click="resize">
-        Einsatz
-      </v-tab>
-      <v-tab :key="6" :disabled="haveDataToSave" ripple>
-        Anwesenheit
-      </v-tab>
-      <v-tab :key="7" :disabled="haveDataToSave" ripple>
+      <v-tab :key="0" :disabled="haveDataToSave" ripple>
         Bericht
       </v-tab>
-      <v-tab-item :key="5" class="doubleTabArea">
+      <v-tab :key="1" :disabled="haveDataToSave" ripple>
+        Anwesenheit
+      </v-tab>
+      <v-tab :key="2" :disabled="haveDataToSave" ripple @click="resize">
+        Einsatz
+      </v-tab>
+      <v-tab-item :key="0" class="tabArea">
+        <template>
+          <Report/>
+        </template>
+      </v-tab-item>
+      <v-tab-item :key="1" class="tabArea">
+        <template>
+          <Attendees/>
+        </template>
+      </v-tab-item>
+      <v-tab-item :key="2" class="doubleTabArea">
         <div class="leftRight">
           <div class="tabArea faxArea">
             <div class="full-height">
@@ -66,16 +76,6 @@
             </div>
           </div>
         </div>
-      </v-tab-item>
-      <v-tab-item :key="6" class="tabArea">
-        <template>
-          <Attendees/>
-        </template>
-      </v-tab-item>
-      <v-tab-item :key="7" class="tabArea">
-        <template>
-          <Report/>
-        </template>
       </v-tab-item>
     </v-tabs>
     <v-snackbar v-model="snackbar" :timeout="snackbarTimeout" :top="true" :color="snackbarColor">
@@ -96,7 +96,7 @@
   import Report from '@/components/Report'
 
   export default {
-    active: 0,
+    activeTabIndex: 0,
     name: 'Alarm',
     components: {
       Attendees,
@@ -112,7 +112,7 @@
         snackbarTimeout: 6000,
         snackbarText: '',
         snackbarColor: 'info',
-        active: this.active,
+        activeTabIndex: this.activeTabIndex,
         keyword: this.keyword ? this.keyword : 'unknown',
         catchword: this.catchword ? this.catchword : 'unknown'
       }
@@ -174,18 +174,9 @@
         'requestMaterialTypesFromServer' // map `this.requestMaterialTypesFromServer()` to `this.$store.dispatch('requestMaterialTypesFromServer')`
       ]),
       async loadJobFromServer() {
+        const self = this;
         this.waitingForData = true
         try {
-          const options = {
-            $session: this.$session,
-            $route: this.$route,
-            $router: this.$router,
-            requestOptions: {
-              withImages: true,
-              jobId: this.currentJobId
-            }
-          }
-          await this.requestJobFromServer(options)
           await this.requestStaffFromServer({$session: this.$session, $route: this.$route, $router: this.$router})
           await this.requestMaterialMetadataFromServer({
             $session: this.$session,
@@ -197,6 +188,19 @@
             $route: this.$route,
             $router: this.$router
           })
+          const options = {
+            $session: this.$session,
+            $route: this.$route,
+            $router: this.$router,
+            requestOptions: {
+              withImages: true,
+              jobId: this.currentJobId
+            }
+          }
+          await this.requestJobFromServer(options)
+          if (!self.currentJob.report.director && self.currentJob.images && self.currentJob.images.fax) {
+            self.activeTabIndex = 2
+          }
         } catch (ex) {
           this._handleError(ex, 'Lesen der Einsatzdaten vom Server fehlgeschlagen')
         }
