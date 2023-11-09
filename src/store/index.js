@@ -91,7 +91,7 @@ function _addAJob (state, job) {
     if (key === 'materialList') {
       const matList = job.report[key]
       if (!matList || !matList.length) {
-        return false; // gnore empty material list
+        return false; // ignore empty material list
       }
     }
     const attribute = job.report[key]

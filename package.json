@@ -13,7 +13,7 @@
     "axios": "^0.19.2",
     "core-js": "^3.6.5",
     "leaflet": "^1.6.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "pdfjs-dist": "^2.3.200",
     "qrcode.vue": "^1.7.0",
     "roboto-fontface": "*",

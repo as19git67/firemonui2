@@ -89,7 +89,7 @@
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden"
+            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden:Minuten"
                           :readonly="true"/>
           </v-flex>
           <v-flex>
@@ -197,12 +197,12 @@
 </template>
 
 <script>
-  import _ from 'lodash'
-  import moment from 'moment'
-  import {mapGetters, mapMutations, mapActions} from 'vuex'
-  import MaterialPicker from '@/components/MaterialPicker'
+import _ from 'lodash'
+import moment from 'moment'
+import {mapActions, mapGetters, mapMutations} from 'vuex'
+import MaterialPicker from '@/components/MaterialPicker'
 
-  export default {
+export default {
     name: 'Report',
     components: {MaterialPicker},
     data: function () {
@@ -632,6 +632,20 @@
           this._throttledSaveJobData()
         }
       },
+      _hoursAsString: function (duration) {
+        const hours = Math.floor(duration)
+        let rest = duration - hours
+        const minutes = Math.floor(rest * 60)
+        const hoursStr = hours.toLocaleString('de-DE', {
+          minimumIntegerDigits: 2,
+          useGrouping: false
+        });
+        const minutesStr = minutes.toLocaleString('de-DE', {
+          minimumIntegerDigits: 2,
+          useGrouping: false
+        });
+        return `${hoursStr}h ${minutesStr}m (${duration.toLocaleString('de-DE')}h)`
+      },
       processDate: function (key, iDate, job, value) {
         const dateKey = key.substr(0, iDate)
         let oldDate
@@ -668,7 +682,7 @@
             const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
-              this.form.duration = duration.toString()
+              this.form.duration = this._hoursAsString(duration)
               // update at server
             }
             this.updateData[dateKey] = newDate
@@ -710,7 +724,7 @@
             const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
-              this.form.duration = duration.toString()
+              this.form.duration = this._hoursAsString(duration)
               // update at server
             }
             this.updateData[timeKey] = newDateTime
@@ -720,9 +734,10 @@
         }
       },
       _createAttendeesSelectionList: function () {
-        this.attendeeList = _.map(_.sortBy(this.currentJob.attendees, 'lastname'), function (attendee) {
+        this.attendeeList =  _.map(_.sortBy(this.currentJob.attendees, 'lastname'), function (attendee) {
           return attendee.firstname + ' ' + attendee.lastname
         })
+        this.attendeeList.push('')
       },
       _setFormFieldIfChanged: function (newValue, formFieldName) {
         if (newValue !== this.form[formFieldName]) {
@@ -798,7 +813,12 @@
               time = sourceObj[dateKey]
               this._setFormTime(time, dateKey)
             } else {
-              this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
+              if (formFieldName === 'duration') {
+                const durationFormatted = this._hoursAsString(sourceObj[formFieldName])
+                this._setFormFieldIfChanged(durationFormatted, formFieldName)
+              } else {
+                this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
+              }
             }
           }
         }
