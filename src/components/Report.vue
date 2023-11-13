@@ -472,21 +472,21 @@ export default {
                 if (value !== oldValue) {
                   console.log(`${key} changed from ${oldValue} to "${value}"`)
                   self.updateData[key] = value
-                  self.setHaveDataToSave(true)
-                  self._throttledSaveJobData()
+                    self.setHaveDataToSave(true)
+                    self._throttledSaveJobData()
+                  }
                 }
-              }
             } else {
               if (_.indexOf(self.jobReportKeys, key) >= 0) {
                 let oldValue = job.report[key]
                 if (value !== oldValue) {
                   console.log(`${key} changed from ${oldValue} to "${value}"`)
                   self.updateData.report[key] = value
-                  self.setHaveDataToSave(true)
-                  self._throttledSaveJobData()
+                    self.setHaveDataToSave(true)
+                    self._throttledSaveJobData()
+                  }
                 }
               }
-            }
           })
         },
         deep: true
@@ -628,9 +628,9 @@ export default {
               this.updateData.report.materialList.push(m)
             }
           })
-          this.setHaveDataToSave(true)
-          this._throttledSaveJobData()
-        }
+            this.setHaveDataToSave(true)
+            this._throttledSaveJobData()
+          }
       },
       _hoursAsString: function (duration) {
         const hours = Math.floor(duration)
@@ -679,17 +679,17 @@ export default {
             // this._setFormDate(newDate, dateKey)
             console.log(`updating date ${newDate.format()} datekey ${dateKey}`)
             this._setFormDateLocalized(newDate, dateKey)
-            const duration = this._calculateDuration()
+            const duration = this._calculateDuration().toString()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
-              this.form.duration = this._hoursAsString(duration)
+              this.form.duration = duration
               // update at server
             }
             this.updateData[dateKey] = newDate
-            this.setHaveDataToSave(true)
-            this._throttledSaveJobData()
+              this.setHaveDataToSave(true)
+              this._throttledSaveJobData()
+            }
           }
-        }
       },
       processTime: function (key, iTime, job, value) {
         const timeKey = key.substr(0, iTime)
@@ -721,17 +721,17 @@ export default {
                 // console.log(`${key} changed from undefined to "${newDateTime.format()}"`)
               }
             }
-            const duration = this._calculateDuration()
+            const duration = this._calculateDuration().toString()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
-              this.form.duration = this._hoursAsString(duration)
+              this.form.duration = duration
               // update at server
             }
             this.updateData[timeKey] = newDateTime
-            this.setHaveDataToSave(true)
-            this._throttledSaveJobData()
+              this.setHaveDataToSave(true)
+              this._throttledSaveJobData()
+            }
           }
-        }
       },
       _createAttendeesSelectionList: function () {
         this.attendeeList =  _.map(_.sortBy(this.currentJob.attendees, 'lastname'), function (attendee) {
@@ -814,7 +814,7 @@ export default {
               this._setFormTime(time, dateKey)
             } else {
               if (formFieldName === 'duration') {
-                const durationFormatted = this._hoursAsString(sourceObj[formFieldName])
+                const durationFormatted = sourceObj[formFieldName].toString()
                 this._setFormFieldIfChanged(durationFormatted, formFieldName)
               } else {
                 this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
@@ -836,7 +836,15 @@ export default {
           })
         })
       },
+      _haveUpdateData: function() {
+        return Object.keys(this.updateData.report).length > 0 || Object.keys(this.updateData).length > 1
+      },
       _throttledSaveJobData: _.debounce(async function () {
+        if (!this._haveUpdateData()) {
+          console.log('Skipping debounced saveJobData, because nothing changed')
+          this.setHaveDataToSave(false)
+          return;
+        }
         console.log('Calling debounced saveJobData')
         const currentJobId = this.currentJobId
         if (!this.savingData && currentJobId !== undefined) {
@@ -895,7 +903,7 @@ export default {
               return Math.round(d.asHours() * 10) / 10
             }
           }
-          return moment.duration(0)
+          return 0
         } else {
           return undefined
         }

@@ -18,6 +18,21 @@ function _updateHaveActiveJob (state) {
   state.haveActiveJob = (j.length > 0)
 }
 
+function _hoursAsString (duration) {
+  const hours = Math.floor(duration)
+  let rest = duration - hours
+  const minutes = Math.floor(rest * 60)
+  const hoursStr = hours.toLocaleString('de-DE', {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+  const minutesStr = minutes.toLocaleString('de-DE', {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+  return `${hoursStr}h ${minutesStr}m (${duration.toLocaleString('de-DE')}h)`
+}
+
 function _updateDuration (job) {
   let s, e
   if (!job) {
@@ -43,7 +58,7 @@ function _updateDuration (job) {
     }
     if (e && e.isValid()) {
       let d = moment.duration(e.diff(s))
-      job.report.duration = Math.round(d.asHours() * 10) / 10
+      job.report.duration = (Math.round(d.asHours() * 10) / 10).toString()
     }
   }
 }
