@@ -89,12 +89,19 @@
         </v-layout>
         <v-layout>
           <v-flex>
-            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden:Minuten"
+            <v-text-field v-model="form.duration" prepend-icon="mdi-timer" label="Einsatzdauer in Stunden"
+                          :readonly="true"/>
+          </v-flex>
+          <v-flex>
+            <v-text-field v-model="form.durationHoursMinutes" label="Einsatzdauer"
                           :readonly="true"/>
           </v-flex>
           <v-flex>
             <v-text-field v-model="attendeesCountOfCurrentJob" label="Anzahl Anwesende"
                           prepend-icon="mdi-account-multiple-check" :readonly="true"/>
+          </v-flex>
+          <v-flex>
+            <v-text-field :readonly="true"/>
           </v-flex>
         </v-layout>
         <v-text-field v-model.lazy="form.incident" :readonly="readonly" prepend-icon="mdi-comment-text"
@@ -182,11 +189,6 @@
     <v-snackbar :value="savingData" :top="false" :timeout="0" dark color="info">
       Daten speichern...
     </v-snackbar>
-<!--
-    <v-snackbar :value="haveDataToSave" :top="false" :timeout="0" dark color="info">
-      Daten wurden geändert und werden später automatisch gespeichert...
-    </v-snackbar>
--->
     <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
       {{errorSnackbarText}}
       <v-btn @click="errorSnackbar = false">
@@ -644,7 +646,7 @@ export default {
           minimumIntegerDigits: 2,
           useGrouping: false
         });
-        return `${hoursStr}h ${minutesStr}m (${duration.toLocaleString('de-DE')}h)`
+        return `${hoursStr}h ${minutesStr}m`
       },
       processDate: function (key, iDate, job, value) {
         const dateKey = key.substr(0, iDate)
@@ -683,6 +685,7 @@ export default {
             if (duration !== undefined) {
               this.updateData.report.duration = duration
               this.form.duration = duration
+              this.form.durationHoursMinutes = this._hoursAsString(duration)
               // update at server
             }
             this.updateData[dateKey] = newDate
@@ -725,6 +728,7 @@ export default {
             if (duration !== undefined) {
               this.updateData.report.duration = duration
               this.form.duration = duration
+              this.form.durationHoursMinutes = this._hoursAsString(duration)
               // update at server
             }
             this.updateData[timeKey] = newDateTime
@@ -816,6 +820,7 @@ export default {
               if (formFieldName === 'duration') {
                 const durationFormatted = sourceObj[formFieldName].toString()
                 this._setFormFieldIfChanged(durationFormatted, formFieldName)
+                this.form.durationHoursMinutes = this._hoursAsString(sourceObj[formFieldName])
               } else {
                 this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
               }
