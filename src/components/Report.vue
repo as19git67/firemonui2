@@ -818,9 +818,11 @@ export default {
               this._setFormTime(time, dateKey)
             } else {
               if (formFieldName === 'duration') {
-                const durationFormatted = sourceObj[formFieldName].toString()
-                this._setFormFieldIfChanged(durationFormatted, formFieldName)
-                this.form.durationHoursMinutes = this._hoursAsString(sourceObj[formFieldName])
+                if (sourceObj[formFieldName]) {
+                  const durationFormatted = sourceObj[formFieldName].toString()
+                  this._setFormFieldIfChanged(durationFormatted, formFieldName)
+                  this.form.durationHoursMinutes = this._hoursAsString(sourceObj[formFieldName])
+                }
               } else {
                 this._setFormFieldIfChanged(sourceObj[formFieldName], formFieldName)
               }
