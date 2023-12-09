@@ -79,7 +79,7 @@
       },
       buttonLeftColor: {
         type: String,
-        default: 'grey'
+        default: 'darkgray'
       },
       color: {
         type: String,

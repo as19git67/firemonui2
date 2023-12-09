@@ -681,7 +681,7 @@ export default {
             // this._setFormDate(newDate, dateKey)
             console.log(`updating date ${newDate.format()} datekey ${dateKey}`)
             this._setFormDateLocalized(newDate, dateKey)
-            const duration = this._calculateDuration().toString()
+            const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
               this.form.duration = duration
@@ -724,7 +724,7 @@ export default {
                 // console.log(`${key} changed from undefined to "${newDateTime.format()}"`)
               }
             }
-            const duration = this._calculateDuration().toString()
+            const duration = this._calculateDuration()
             if (duration !== undefined) {
               this.updateData.report.duration = duration
               this.form.duration = duration

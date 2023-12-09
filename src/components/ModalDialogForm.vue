@@ -54,14 +54,14 @@
         <v-spacer />
         <v-btn
           :color="buttonLeftColor"
-          flat
+          text
           @click="choose(false)"
         >
           Abbrechen
         </v-btn>
         <v-btn
           :color="buttonRightColor"
-          flat
+          text
           :disabled="!valid"
           @click="choose(true)"
         >
@@ -94,7 +94,7 @@
       },
       buttonLeftColor: {
         type: String,
-        default: 'grey'
+        default: 'darkgray'
       },
       color: {
         type: String,
