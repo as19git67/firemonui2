@@ -682,12 +682,10 @@ export default {
             console.log(`updating date ${newDate.format()} datekey ${dateKey}`)
             this._setFormDateLocalized(newDate, dateKey)
             const duration = this._calculateDuration().toString()
-            if (duration !== undefined) {
-              this.updateData.report.duration = duration
-              this.form.duration = duration
-              this.form.durationHoursMinutes = this._hoursAsString(duration)
-              // update at server
-            }
+            this.updateData.report.duration = duration
+            this.form.duration = duration
+            this.form.durationHoursMinutes = this._hoursAsString(duration)
+            // update at server
             this.updateData[dateKey] = newDate
               this.setHaveDataToSave(true)
               this._throttledSaveJobData()
@@ -725,12 +723,10 @@ export default {
               }
             }
             const duration = this._calculateDuration().toString()
-            if (duration !== undefined) {
-              this.updateData.report.duration = duration
-              this.form.duration = duration
-              this.form.durationHoursMinutes = this._hoursAsString(duration)
-              // update at server
-            }
+            this.updateData.report.duration = duration
+            this.form.duration = duration
+            this.form.durationHoursMinutes = this._hoursAsString(duration)
+            // update at server
             this.updateData[timeKey] = newDateTime
               this.setHaveDataToSave(true)
               this._throttledSaveJobData()
@@ -912,7 +908,7 @@ export default {
           }
           return 0
         } else {
-          return undefined
+          return 0
         }
       },
       showMaterialPicker() {
