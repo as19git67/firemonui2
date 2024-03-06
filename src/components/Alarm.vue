@@ -80,7 +80,7 @@
     </v-tabs>
     <v-snackbar v-model="snackbar" :timeout="snackbarTimeout" :top="true" :color="snackbarColor">
       {{snackbarText}}
-      <v-btn flat @click="snackbar = false">
+      <v-btn text @click="snackbar = false">
         Schließen
       </v-btn>
     </v-snackbar>

@@ -15,7 +15,7 @@
     </v-snackbar>
     <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
       {{errorSnackbarText}}
-      <v-btn flat @click="errorSnackbar = false">
+      <v-btn text @click="errorSnackbar = false">
         Schließen
       </v-btn>
     </v-snackbar>

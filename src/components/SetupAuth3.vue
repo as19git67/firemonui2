@@ -58,7 +58,7 @@
                               autofocus
                               outlined
                               solo
-                              flat
+                              text
                               persistent-hint
                               hint="6-stelliger Code"
                               class="codefield display-2 justify-center"

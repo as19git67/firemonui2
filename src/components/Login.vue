@@ -20,7 +20,7 @@
               <v-text-field id="code" v-model="code" name="code" type="text" autocomplete="off"
                             outlined
                             solo
-                            flat
+                            text
                             persistent-hint
                             hint="Authenticator App Code"
                             class="codefield display-2 justify-center"
