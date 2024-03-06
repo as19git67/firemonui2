@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <v-content>
+    <v-main class="main-content">
       <router-view :key="$route.fullPath" />
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
@@ -133,11 +133,11 @@
     height: 100%;
   }
 
-  .v-content {
+  .main-content {
     flex: 1 1 auto;
   }
 
-  .v-content > div {
+  .main-content > div {
     display: flex;
     flex-direction: column;
   }

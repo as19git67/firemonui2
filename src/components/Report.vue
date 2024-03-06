@@ -186,7 +186,7 @@
         <MaterialPicker @close="materialPickerClose"/>
       </template>
     </v-dialog>
-    <v-snackbar :value="savingData" :top="false" :timeout="0" dark color="info">
+    <v-snackbar :value="savingData" :top="false" :timeout="-1" dark color="info">
       Daten speichern...
     </v-snackbar>
     <v-snackbar v-model="errorSnackbar" :timeout="16000" :top="true" color="error">
