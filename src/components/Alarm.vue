@@ -198,7 +198,8 @@
             }
           }
           await this.requestJobFromServer(options)
-          if (!self.currentJob.report.director && self.currentJob.images && self.currentJob.images.fax) {
+          if (!self.currentJob.report.director && !self.currentJob.report.writer && !self.currentJob.report.text
+            && self.currentJob.images && self.currentJob.images.fax) {
             self.activeTabIndex = 2
           }
         } catch (ex) {
