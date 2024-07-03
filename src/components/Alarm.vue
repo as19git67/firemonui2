@@ -134,7 +134,11 @@
       wsConnected() {
         console.log(`WebSocket connection state changed. Connected: ${this.wsConnected}`)
         if (this.wsConnected) {
-          this.loadJobFromServer()
+          if (!this.haveDataToSave) {
+            this.loadJobFromServer()
+          } else {
+            console.log('Not loading job from server, because haveDataToSave is true');
+          }
         }
       }
     },
